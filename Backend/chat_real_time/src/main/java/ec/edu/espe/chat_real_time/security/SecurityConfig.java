@@ -30,8 +30,8 @@ public class SecurityConfig {
   private final UserDetailsServiceImpl userService;
 
   private static final String[] PUBLIC_ENDPOINTS = {
-          "/api/auth/**",
-          "/api/public/**"
+          "/api/v1/auth/**",
+          "/api/v1/public/**"
   };
 
   @Bean
@@ -43,11 +43,10 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                    .requestMatchers("/api/rooms/create").hasAnyRole("ADMIN", "USER")
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/v1/rooms/create").hasAnyRole("ADMIN", "USER")
+                    .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             )
-
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

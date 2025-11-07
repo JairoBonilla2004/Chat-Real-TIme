@@ -24,6 +24,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     User user = userRepository.findByUsernameAndDeletedAtIsNull(username)
             .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
 
-    return  user;
+    return user;
+  }
+
+  public UserDetails loadUserById(Long userId) throws UsernameNotFoundException {
+    return userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
   }
 }
