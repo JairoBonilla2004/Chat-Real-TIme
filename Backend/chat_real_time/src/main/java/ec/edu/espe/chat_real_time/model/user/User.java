@@ -7,9 +7,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -24,7 +29,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+
+public class User implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -89,10 +95,63 @@ public class User {
   @Builder.Default
   private Set<Message> messages = new HashSet<>();
 
-  public boolean isAccountNonExpired() {
-    if (isGuest && guestExpiresAt != null) {
-      return LocalDateTime.now().isBefore(guestExpiresAt);
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+    String roleName = this.role.name();
+    if (!roleName.startsWith("ROLE_")) {
+      roleName = "ROLE_" + roleName;
     }
-    return true;
+    authorities.add(new SimpleGrantedAuthority(roleName));
+    return authorities;
+  }
+
+  @Column(name = "locked_until")
+  private LocalDateTime lockedUntil;
+
+  //Sprin Security UserDetails attributes
+  @Column(name = "enabled", nullable = false)
+  @Builder.Default
+  private Boolean enabled = true;
+
+  @Column(name = "account_non_expired", nullable = false)
+  @Builder.Default
+  private Boolean accountNonExpired = true;
+
+  @Column(name = "credentials_non_expired", nullable = false)
+  @Builder.Default
+  private Boolean credentialsNonExpired = true;
+
+  @Column(name = "account_non_locked", nullable = false)
+  @Builder.Default
+  private Boolean accountNonLocked = true;
+
+
+  @Override
+  public boolean isAccountNonLocked() {
+    if (lockedUntil == null) {
+      return Boolean.TRUE.equals(this.accountNonLocked);
+    }
+    return LocalDateTime.now().isAfter(lockedUntil);
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return Boolean.TRUE.equals(this.enabled);
+  }
+
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return Boolean.TRUE.equals(this.credentialsNonExpired);
+  }
+
+  @Override
+  public boolean isAccountNonExpired() {
+    return Boolean.TRUE.equals(this.accountNonExpired);
+  }
+
+  @Override
+  public String getPassword() {
+    return passwordHash;
   }
 }
