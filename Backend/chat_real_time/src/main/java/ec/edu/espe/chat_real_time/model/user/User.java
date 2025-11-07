@@ -17,6 +17,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_users_role", columnList = "role"),
@@ -29,7 +38,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class User implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,7 +57,7 @@ public class User implements UserDetails {
   @Builder.Default
   private UserRole role = UserRole.GUEST;
 
-  @Column(length = 50)
+  @Column(nullable = false, length = 50)
   private String nickname;
 
   @Column(name = "ip_address", length = 45)
@@ -61,7 +69,7 @@ public class User implements UserDetails {
 
   @Column(name = "is_guest")
   @Builder.Default
-  private Boolean isGuest = false;
+  private Boolean isGuest = true;
 
   @Column(name = "guest_expires_at")
   private LocalDateTime guestExpiresAt;
@@ -77,39 +85,31 @@ public class User implements UserDetails {
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
-  // Relaciones
-
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
-  private Set<RefreshToken> refreshTokens = new HashSet<>();
+  private List<RefreshToken> refreshTokens = new ArrayList<>();
 
   @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
   @Builder.Default
-  private Set<Room> createdRooms = new HashSet<>();
+  private List<Room> createdRooms = new ArrayList<>();
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   @Builder.Default
-  private Set<UserSession> sessions = new HashSet<>();
+  private List<UserSession> sessions = new ArrayList<>();
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   @Builder.Default
-  private Set<Message> messages = new HashSet<>();
+  private List<Message> messages = new ArrayList<>();
 
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-    String roleName = this.role.name();
-    if (!roleName.startsWith("ROLE_")) {
-      roleName = "ROLE_" + roleName;
+
+  public boolean isAccountGuessNonExpired() {
+    if (isGuest && guestExpiresAt != null) {
+      return LocalDateTime.now().isBefore(guestExpiresAt);
     }
-    authorities.add(new SimpleGrantedAuthority(roleName));
-    return authorities;
+    return true;
   }
 
-  @Column(name = "locked_until")
-  private LocalDateTime lockedUntil;
-
-  //Sprin Security UserDetails attributes
+  //Atributos de UserDetails
   @Column(name = "enabled", nullable = false)
   @Builder.Default
   private Boolean enabled = true;
@@ -118,14 +118,26 @@ public class User implements UserDetails {
   @Builder.Default
   private Boolean accountNonExpired = true;
 
-  @Column(name = "credentials_non_expired", nullable = false)
-  @Builder.Default
-  private Boolean credentialsNonExpired = true;
-
   @Column(name = "account_non_locked", nullable = false)
   @Builder.Default
   private Boolean accountNonLocked = true;
 
+  @Column(name = "credentials_non_expired", nullable = false)
+  @Builder.Default
+  private Boolean credentialsNonExpired = true;
+
+  @Column(name = "locked_until")
+  private LocalDateTime lockedUntil;
+
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return List.of();
+  }
+
+  @Override
+  public String getPassword() {
+    return this.passwordHash;
+  }
 
   @Override
   public boolean isAccountNonLocked() {
@@ -134,6 +146,7 @@ public class User implements UserDetails {
     }
     return LocalDateTime.now().isAfter(lockedUntil);
   }
+
 
   @Override
   public boolean isEnabled() {
@@ -150,8 +163,4 @@ public class User implements UserDetails {
     return Boolean.TRUE.equals(this.accountNonExpired);
   }
 
-  @Override
-  public String getPassword() {
-    return passwordHash;
-  }
 }

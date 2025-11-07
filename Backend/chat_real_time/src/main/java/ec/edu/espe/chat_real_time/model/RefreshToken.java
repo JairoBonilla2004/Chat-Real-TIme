@@ -8,50 +8,55 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "refresh_tokens", indexes = {
-        @Index(name = "idx_refresh_token", columnList = "token"),
-        @Index(name = "idx_refresh_token_user", columnList = "user_id"),
-        @Index(name = "idx_refresh_token_expires", columnList = "expiresAt")
-})
+@Table(name = "refresh_tokens")
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class RefreshToken {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true, length = 500)
+  @Column(unique = true, nullable = false, length = 500)
   private String token;
 
-  @Column(name = "expires_at", nullable = false)
-  private LocalDateTime expiresAt;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-  @CreationTimestamp
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
+  @Column(name = "expiry_date", nullable = false)
+  private LocalDateTime expiryDate;
 
-  @Column(nullable = false)
-  @Builder.Default
-  private Boolean revoked = false;
-
-  @Column(name = "revoked_at")
-  private LocalDateTime revokedAt;
-
-  @Column(name = "device_info", length = 255)
+  @Column(name = "device_info")
   private String deviceInfo;
 
   @Column(name = "ip_address", length = 45)
   private String ipAddress;
 
-  public boolean isExpired() {
-    return LocalDateTime.now().isAfter(expiresAt);
+  @Column(name = "user_agent", length = 500)
+  private String userAgent;
+
+  @Column(name = "is_active", nullable = false)
+  private Boolean isActive = true;
+
+  @Column(name = "created_at", updatable = false)
+  private LocalDateTime createdAt;
+
+  @PrePersist
+  protected void onCreate() {
+    createdAt = LocalDateTime.now();
   }
 
-  // Relaciones
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+  public void revoke() {
+    this.isActive = false;
+  }
+
+  public boolean isExpired(){
+    return LocalDateTime.now().isAfter(expiryDate);
+  }
+
+
 }
