@@ -1,8 +1,10 @@
 package com.espe.chat_real_time.model.message;
 
 
-import com.espe.chat_real_time.model.FileAttachment;
+import com.espe.chat_real_time.model.Attachment;
 import com.espe.chat_real_time.model.room.Room;
+import com.espe.chat_real_time.model.user.User;
+import com.espe.chat_real_time.model.user.UserSession;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,6 +49,14 @@ public class Message {
   private Room room;
 
   @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<FileAttachment> fileAttachments = new java.util.HashSet<>();
+  private Set<Attachment> fileAttachments = new java.util.HashSet<>();
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id")
+  private User user;
+
+  @ManyToOne
+  @JoinColumn(name = "session_id")
+  private UserSession session;
 
 }

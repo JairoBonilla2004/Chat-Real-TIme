@@ -1,62 +1,75 @@
 package com.espe.chat_real_time.model.user;
 
+import com.espe.chat_real_time.model.message.Message;
 import com.espe.chat_real_time.model.room.Room;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "user_sessions",
         indexes = {
-                @Index(name = "idx_session_ip_room", columnList = "ip_address, room_id"),
-                @Index(name = "idx_session_user", columnList = "user_id")
+                @Index(name = "idx_session_room", columnList = "room_id"),
+                @Index(name = "idx_session_active", columnList = "isActive")
         },
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"ip_address", "room_id"})
+                @UniqueConstraint(
+                        name = "uniq_nickname_per_room",
+                        columnNames = {"room_id", "nicknameInRoom", "isActive"}
+                ),
+                @UniqueConstraint(
+                        name = "uniq_user_room_device",
+                        columnNames = {"user_id", "room_id", "deviceId", "isActive"}
+                )
         }
 )
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserSession { // esta clase sirve para manjar sesiones de usuarios, tanto reistrados como invitados
-
+@Builder
+public class UserSession { // esta clase nos permite manejar multiples sesiones por usuario es decir un usuario puede estar en la misma sala desde diferentes dispositivos
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, length = 50)
-  private String nickname;
-
-  @Column(name = "ip_address", nullable = false, length = 45)
-  private String ipAddress;
-
-  @Column(name = "session_id", unique = true, nullable = false)
-  private String sessionId;
-
-  @Column(name = "is_active")
-  private boolean isActive = true;
+  @Column(name = "nickname_in_room", nullable = false, length = 50)
+  private String nicknameInRoom;
 
   @CreationTimestamp
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
+  @Column(name = "joined_at", nullable = false, updatable = false)
+  private LocalDateTime joinedAt;
 
-  @UpdateTimestamp
-  @Column(name = "last_activity")
-  private LocalDateTime lastActivity;
+  @Column(name = "left_at")
+  private LocalDateTime leftAt;
+
+  @Column(name = "device_id", nullable = false, length = 100)
+  private String deviceId;
+
+  @Column(name = "ip_address", length = 45)
+  private String ipAddress;
+
+  @Column(name = "user_agent", length = 500)
+  private String userAgent;
+
+  @Column(name = "is_active")
+  @Builder.Default
+  private Boolean isActive = true;
 
   // Relaciones
+
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id")
+  @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "room_id", nullable = false)
   private Room room;
+
+  @OneToMany(mappedBy = "session", cascade = CascadeType.ALL) //esta relacion nos pemite obtener todos los mensajes enviados desde esta sesion
+  @Builder.Default
+  private Set<Message> messages = new HashSet<>();
 }
