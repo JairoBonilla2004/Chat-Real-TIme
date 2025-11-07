@@ -30,6 +30,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
   private int maxTokensPerUser;
 
   @Override
+  @Transactional
   public RefreshToken createRefreshToken(User user, String ipAddress, String userAgent, String deviceInfo) {
     deleteExpiredTokensByUser(user.getId());
 

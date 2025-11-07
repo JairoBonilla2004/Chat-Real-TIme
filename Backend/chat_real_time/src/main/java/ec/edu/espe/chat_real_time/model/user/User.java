@@ -14,17 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-
-
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -45,6 +35,15 @@ public class User implements UserDetails {
 
   @Column(nullable = false, unique = true, length = 50)
   private String username;
+
+  @Column(nullable = false, unique = true, length = 50)
+  private String name;
+
+  @Column(nullable = false, unique = true, length = 50)
+  private String lastName;
+
+  @Column(unique = true, length = 15)
+  private String phone;
 
   @Column(unique = true, length = 100)
   private String email;
@@ -87,19 +86,19 @@ public class User implements UserDetails {
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
-  private List<RefreshToken> refreshTokens = new ArrayList<>();
+  private Set<RefreshToken> refreshTokens = new HashSet<>();
 
   @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
   @Builder.Default
-  private List<Room> createdRooms = new ArrayList<>();
+  private Set<Room> createdRooms = new HashSet<>();
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   @Builder.Default
-  private List<UserSession> sessions = new ArrayList<>();
+  private Set<UserSession> sessions = new HashSet<>();
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   @Builder.Default
-  private List<Message> messages = new ArrayList<>();
+  private Set<Message> messages = new HashSet<>();
 
 
   public boolean isAccountGuessNonExpired() {
@@ -131,7 +130,13 @@ public class User implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of();
+    Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+    String roleName = this.role.name();
+    if(!roleName.startsWith("ROLE_")){
+      roleName = "ROLE_" + roleName;
+    }
+    authorities.add(new SimpleGrantedAuthority(roleName));
+    return authorities;
   }
 
   @Override
@@ -146,7 +151,6 @@ public class User implements UserDetails {
     }
     return LocalDateTime.now().isAfter(lockedUntil);
   }
-
 
   @Override
   public boolean isEnabled() {

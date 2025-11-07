@@ -11,10 +11,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AuthResponse {
-  private String accessToken;
-  private String refreshToken;
-  private String tokenType = "Bearer";
-  private Long expiresIn;
-  private UserAdminResponse userInfo;
+public class UserAdminResponse {
+  private Long id;
+  private String name;
+  private String lastName;
+  private String email;
+  private String username;
+  private String phone;
+  private String role;
+  private boolean enabled;
 }

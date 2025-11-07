@@ -12,10 +12,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class UserGuestResponse {
   private Long id;
-  private String username;
-  private String email;
   private UserRole role;
   private String nickname;
   private Boolean isGuest;

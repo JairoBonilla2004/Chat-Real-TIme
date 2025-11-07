@@ -24,5 +24,5 @@ public class RoomResponse {
   private Boolean isActive;
   private Boolean isFull;
   private LocalDateTime createdAt;
-  private UserResponse creator;
+  private UserAdminResponse creator;
 }
