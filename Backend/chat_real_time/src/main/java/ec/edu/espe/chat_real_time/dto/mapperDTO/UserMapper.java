@@ -13,7 +13,7 @@ public class UserMapper {
             .nickname(user.getNickname())
             .isGuest(user.getIsGuest())
             .guestExpiresAt(user.getGuestExpiresAt())
-            .isActive(user.getIsActive())
+            .isActive(user.getEnabled())
             .createdAt(user.getCreatedAt())
             .build();
   }
@@ -27,7 +27,7 @@ public class UserMapper {
             .username(user.getUsername())
             .phone(user.getPhone())
             .role(user.getRole().name())
-            .enabled(user.getIsActive())
+            .enabled(user.getEnabled())
             .build();
   }
 }

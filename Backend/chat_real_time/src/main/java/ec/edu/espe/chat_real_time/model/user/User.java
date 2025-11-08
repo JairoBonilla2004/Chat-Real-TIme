@@ -36,10 +36,10 @@ public class User implements UserDetails {
   @Column(nullable = false, unique = true, length = 50)
   private String username;
 
-  @Column(nullable = false, unique = true, length = 50)
+  @Column( unique = true, length = 50)
   private String name;
 
-  @Column(nullable = false, unique = true, length = 50)
+  @Column( unique = true, length = 50)
   private String lastName;
 
   @Column(unique = true, length = 15)
@@ -62,10 +62,6 @@ public class User implements UserDetails {
   @Column(name = "ip_address", length = 45)
   private String ipAddress;
 
-  @Column(name = "is_active")
-  @Builder.Default
-  private Boolean isActive = true;
-
   @Column(name = "is_guest")
   @Builder.Default
   private Boolean isGuest = true;
@@ -87,6 +83,10 @@ public class User implements UserDetails {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   private Set<RefreshToken> refreshTokens = new HashSet<>();
+
+  @Column(name = "failed_login_attempts", nullable = false)
+  @Builder.Default
+  private Integer failedLoginAttempts = 0;
 
   @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
   @Builder.Default

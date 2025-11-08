@@ -1,5 +1,6 @@
 package ec.edu.espe.chat_real_time.Service.refreshToken;
 
+import ec.edu.espe.chat_real_time.exception.InvalidTokenException;
 import ec.edu.espe.chat_real_time.model.RefreshToken;
 import ec.edu.espe.chat_real_time.model.user.User;
 import ec.edu.espe.chat_real_time.repository.RefreshTokenRepository;
@@ -85,5 +86,23 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
       log.info("Revoked {} refresh tokens for user {}", tokensToRevokeList.size(), userId);
     }
   }
+  public RefreshToken findByToken(String token) {
+    return refreshTokenRepository.findByToken(token)
+            .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
+  }
+
+  @Transactional
+  public void revokeToken(String token) {
+    RefreshToken refreshToken = findByToken(token);
+    if (refreshToken.getIsActive()) {
+      refreshToken.revoke();
+      refreshTokenRepository.save(refreshToken);
+      log.info("Revoked refresh token for user {}", refreshToken.getUser().getId());
+    } else {
+      log.warn("Attempted to revoke an already inactive token for user {}", refreshToken.getUser().getId());
+    }
+  }
+
+
 
 }
