@@ -8,5 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface AuthService {
   AuthResponse login(LoginRequest request, HttpServletRequest httpRequest);
   AuthResponse guestLogin(GuestLoginRequest request, HttpServletRequest httpRequest);
-  void logout(String refreshToken, HttpServletRequest httpServletRequest );
+  void logout(String refreshToken );
+  void logoutFromAllDevices(String refreshToken);
+  AuthResponse refreshToken(String cookieValue, HttpServletRequest httpServletRequest);
 }

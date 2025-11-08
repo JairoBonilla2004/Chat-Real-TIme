@@ -93,6 +93,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
   @Transactional
   public void revokeToken(String token) {
+    //log del token por parametro
+     log.info( "Revoking refresh token: {}", token);
     RefreshToken refreshToken = findByToken(token);
     if (refreshToken.getIsActive()) {
       refreshToken.revoke();
@@ -103,6 +105,23 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
   }
 
+  @Transactional
+  public void revokeAllUserTokens(Long userId){
+    refreshTokenRepository.revokeAllUserTokens(userId);
+    log.info("Revoked all refresh tokens for user {}", userId);
+  }
+  @Transactional
+  public  void deleteByToken(String token){
+    refreshTokenRepository.deleteByToken(token);
+    log.info("Deleted refresh token {}", token);
+  }
+
+  @Transactional
+  public RefreshToken rotateRefreshToken(RefreshToken oldToken, String ipAddress, String userAgent, String deviceInfo){ //este mtodo sirve para rotar el token de refresco es decir revocar el antiguo y crear uno nuevo
+    oldToken.revoke();
+    refreshTokenRepository.save(oldToken);
+    return createRefreshToken(oldToken.getUser(), ipAddress, userAgent, deviceInfo);
+  }
 
 
 }

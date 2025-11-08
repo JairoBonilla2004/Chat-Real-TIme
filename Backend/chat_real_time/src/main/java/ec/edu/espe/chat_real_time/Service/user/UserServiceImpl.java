@@ -58,10 +58,30 @@ public class UserServiceImpl implements  UserService{
     userRepository.deleteAllExpiredGuests(LocalDateTime.now());
   }
 
+  @Override
   public User findByUsername(String username) {
     return userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
   }
+
+  @Transactional
+  @Override
+  public void recordSuccessfulLogin(String username) {
+    User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    user.setFailedLoginAttempts(0);
+    user.setLockedUntil(null);
+    user.setAccountNonLocked(true);
+
+    userRepository.save(user);
+  }
+
+  @Transactional
+  @Override
+  public void delete(User user) {
+    userRepository.delete(user);
+  }
+
 
 
 }

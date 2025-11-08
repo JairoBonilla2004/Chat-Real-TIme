@@ -5,6 +5,8 @@ import ec.edu.espe.chat_real_time.model.user.User;
 public interface UserService {
 
   void  recordFailedLoginAttempt(String username);
-
+  void recordSuccessfulLogin(String username);
+  User findByUsername(String username);
   void saveUser(User user);
+  void delete(User user);
 }

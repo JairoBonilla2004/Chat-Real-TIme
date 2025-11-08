@@ -10,4 +10,5 @@ public class ChatRealTimeApplication {
 		SpringApplication.run(ChatRealTimeApplication.class, args);
 	}
 
+
 }

@@ -7,10 +7,12 @@ import ec.edu.espe.chat_real_time.dto.mapperDTO.UserMapper;
 import ec.edu.espe.chat_real_time.dto.request.GuestLoginRequest;
 import ec.edu.espe.chat_real_time.dto.request.LoginRequest;
 import ec.edu.espe.chat_real_time.dto.response.AuthResponse;
+import ec.edu.espe.chat_real_time.exception.InvalidTokenException;
 import ec.edu.espe.chat_real_time.model.RefreshToken;
 import ec.edu.espe.chat_real_time.model.Role;
 import ec.edu.espe.chat_real_time.model.user.GuestProfile;
 import ec.edu.espe.chat_real_time.model.user.User;
+import ec.edu.espe.chat_real_time.repository.GuestProfileRepository;
 import ec.edu.espe.chat_real_time.repository.RoleRepository;
 import ec.edu.espe.chat_real_time.security.jwt.JwtService;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
   private final HttpRequestService httpRequestService;
   private final UserServiceImpl userService;
   private final RoleRepository roleRepository;
+  private final GuestProfileRepository guestProfileRepository;
 
   @Value("${app.guest.session-duration-hours}")
   private int guestSessionDurationHours;
@@ -54,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
               )
       );
       User user = (User) authentication.getPrincipal();
+      user.setIpAddress(httpRequestService.getClientIpAddress(httpServletRequest));
       if (!user.isAccountNonLocked()) {
         throw new LockedException("The admin is blocked");
       }
@@ -74,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
               , httpRequestService.getUserAgent(httpServletRequest)
               , httpRequestService.getDeviceInfo(httpServletRequest)
       );
+      userService.recordSuccessfulLogin(user.getUsername());
       return AuthResponse.builder()
               .accessToken(accessToken)
               .refreshToken(refreshToken.getToken())
@@ -103,27 +109,43 @@ public class AuthServiceImpl implements AuthService {
       throw new IllegalArgumentException("El nickname no puede estar vacío");
     }
 
-    String guestUsername = guestUsernamePrefix + UUID.randomUUID().toString().substring(0, 8);
     String clientIp = httpRequestService.getClientIpAddress(httpRequest);
 
-    User guestUser = User.builder()
-            .username(guestUsername)
-            .isActive(true)
-            .ipAddress(clientIp)
-            .build();
+    Optional<GuestProfile> existingProfileOpt = guestProfileRepository.findByNickname(request.getNickname());
+
+    if (existingProfileOpt.isPresent()) {
+      GuestProfile existingProfile = existingProfileOpt.get();
+      if (existingProfile.getExpiresAt().isAfter(LocalDateTime.now())) {
+        User existingUser = existingProfile.getUser();
+        String token = jwtService.generateAccessToken(existingUser);
+        return AuthResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(jwtService.getAccessTokenExpiration())
+                .guestInfo(UserMapper.toUserGuestResponse(existingProfile))
+                .build();
+      } else {
+        userService.delete(existingProfile.getUser());
+      }
+    }
+
+    String guestUsername = guestUsernamePrefix + UUID.randomUUID().toString().substring(0, 8);
+    String guestNickname = request.getNickname() + "#" + UUID.randomUUID().toString().substring(0, 4);
+    User guestUser = new User();
+    guestUser.setUsername(guestUsername);
+    guestUser.setIsActive(true);
+    guestUser.setIpAddress(clientIp);
 
     Role guestRole = roleRepository.findByName("ROLE_GUEST")
             .orElseThrow(() -> new EntityNotFoundException("Rol 'ROLE_GUEST' no encontrado"));
     guestUser.getRoles().add(guestRole);
 
-    GuestProfile guestProfile = GuestProfile.builder()
-            .nickname(request.getNickname())
-            .expiresAt(LocalDateTime.now().plusHours(guestSessionDurationHours))
-            .user(guestUser)
-            .build();
+    GuestProfile guestProfile = new GuestProfile();
+    guestProfile.setNickname(guestNickname);
+    guestProfile.setExpiresAt(LocalDateTime.now().plusHours(guestSessionDurationHours));
+    guestProfile.setUser(guestUser);
 
     guestUser.setGuestProfile(guestProfile);
-
     User savedUser = userService.saveUserDB(guestUser)
             .orElseThrow(() -> new IllegalStateException("Error al guardar el usuario invitado"));
 
@@ -139,12 +161,49 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public void logout(String refreshToken, HttpServletRequest httpServletRequest) {
-    RefreshToken token = refreshTokenService.findByToken(refreshToken);
+  public void logout(String refreshToken) {
     refreshTokenService.revokeToken(refreshToken);
-
   }
 
+  @Override
+  @Transactional
+  public void logoutFromAllDevices(String refreshToken) {
+    User user = refreshTokenService.findByToken(refreshToken).getUser();
+    refreshTokenService.revokeAllUserTokens(user.getId());
+  }
+
+  @Transactional
+  public AuthResponse refreshToken(String cookieValue, HttpServletRequest httpServletRequest) {
+    if (cookieValue == null || cookieValue.isEmpty()) {
+      throw new InvalidTokenException("Refresh token is missing");
+    }
+    RefreshToken refreshToken = refreshTokenService.findByToken(cookieValue);
+
+    if (refreshToken.isExpired()) {
+      refreshTokenService.deleteByToken(refreshToken.getToken());
+      throw new InvalidTokenException("Refresh token has expired");
+    }
+
+    if (!refreshToken.getIsActive()) {
+      throw new InvalidTokenException("Refresh token is no longer active");
+    }
+    User user = refreshToken.getUser();
+    String newAccessToken = jwtService.generateAccessToken(user);
+    RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(refreshToken,
+            httpRequestService.getClientIpAddress(httpServletRequest),
+            httpRequestService.getUserAgent(httpServletRequest),
+            httpRequestService.getDeviceInfo(httpServletRequest)
+    );
+
+    return AuthResponse.builder()
+            .accessToken(newAccessToken)
+            .refreshToken(newRefreshToken.getToken())
+            .tokenType("Bearer")
+            .expiresIn(jwtService.getAccessTokenExpiration())
+            .userInfo(UserMapper.toUserAdminResponse(user.getAdminProfile()))
+            .build();
+
+  }
 
 
 }

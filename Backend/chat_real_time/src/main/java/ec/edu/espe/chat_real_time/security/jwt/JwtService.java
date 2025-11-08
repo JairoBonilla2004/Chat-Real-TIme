@@ -32,7 +32,6 @@ public class JwtService {
   private SecretKey getSingninKey() {
     return Keys.hmacShaKeyFor(jwtSecret.getBytes());
   }
-
   public String buildAccessToken(
           Map<String, Object> extraClaims,
           UserDetails userDetails,
@@ -42,8 +41,18 @@ public class JwtService {
     Map<String, Object> claims = new HashMap<>(extraClaims);
     claims.put("userId", user.getId());
     claims.put("username", user.getUsername());
-    claims.put("email", user.getAdminProfile().getEmail());
-    claims.put("authorities", user.getAuthorities());
+    claims.put("authorities", user.getAuthorities()); // esto devuel
+
+    // 👇 Agregamos información específica según el tipo de perfil
+    if (user.getAdminProfile() != null) {
+      claims.put("email", user.getAdminProfile().getEmail());
+      claims.put("roleType", "ADMIN");
+    } else if (user.getGuestProfile() != null) {
+      claims.put("nickname", user.getGuestProfile().getNickname());
+      claims.put("expiresAt", user.getGuestProfile().getExpiresAt().toString());
+      claims.put("roleType", "GUEST");
+    }
+
     return Jwts.builder()
             .setClaims(claims)
             .setSubject(user.getId().toString())
@@ -52,6 +61,9 @@ public class JwtService {
             .signWith(getSingninKey(), SignatureAlgorithm.HS256)
             .compact();
   }
+
+
+
 
   public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {// ejemplo con getSbbject: Function<Claims, T> claimsResolver = x -> x.getSubject(), a x se aplica claims
     final Claims claims = extractAllClaims(token);
