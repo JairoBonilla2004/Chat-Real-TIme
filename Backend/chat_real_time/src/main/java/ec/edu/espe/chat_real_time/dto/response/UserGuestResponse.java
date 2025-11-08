@@ -1,6 +1,5 @@
 package ec.edu.espe.chat_real_time.dto.response;
 
-import ec.edu.espe.chat_real_time.model.user.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UserGuestResponse {
   private Long id;
-  private UserRole role;
+  private String role;
   private String nickname;
   private Boolean isGuest;
   private LocalDateTime guestExpiresAt;
