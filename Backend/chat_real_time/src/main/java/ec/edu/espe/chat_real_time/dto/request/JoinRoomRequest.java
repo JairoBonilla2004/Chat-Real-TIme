@@ -14,11 +14,11 @@ public class JoinRoomRequest {
   private String roomCode;
 
   @NotBlank(message = "El PIN es requerido")
-  private String pin;
+  private String pin;// el pin es
 
   @NotBlank(message = "El nickname es requerido")
   @Size(min = 3, max = 50, message = "El nickname debe tener entre 3 y 50 caracteres")
   private String nickname;
 
-  private String deviceId;
+  private String deviceId; // Identificador único del dispositivo del usuario sirve para gestionar sesiones y conexiones
 }

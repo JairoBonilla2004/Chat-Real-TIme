@@ -105,5 +105,4 @@ public class AuthController {
             .body(ApiResponse.success("Logged out from all devices successfully", null));
   }
 
-
 }
