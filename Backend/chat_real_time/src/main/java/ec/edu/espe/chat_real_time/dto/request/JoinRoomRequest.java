@@ -12,13 +12,8 @@ import lombok.NoArgsConstructor;
 public class JoinRoomRequest {
   @NotBlank(message = "El código de sala es requerido")
   private String roomCode;
-
   @NotBlank(message = "El PIN es requerido")
   private String pin;// el pin es
-
-  @NotBlank(message = "El nickname es requerido")
-  @Size(min = 3, max = 50, message = "El nickname debe tener entre 3 y 50 caracteres")
-  private String nickname;
 
   private String deviceId; // Identificador único del dispositivo del usuario sirve para gestionar sesiones y conexiones
 }

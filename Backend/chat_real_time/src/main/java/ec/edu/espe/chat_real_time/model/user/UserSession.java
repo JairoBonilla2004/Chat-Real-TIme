@@ -36,9 +36,6 @@ public class UserSession { // esta clase nos permite manejar multiples sesiones 
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "nickname_in_room", nullable = false, length = 50)
-  private String nicknameInRoom;
-
   @CreationTimestamp
   @Column(name = "joined_at", nullable = false, updatable = false)
   private LocalDateTime joinedAt;

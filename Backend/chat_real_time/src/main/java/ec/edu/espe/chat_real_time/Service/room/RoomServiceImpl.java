@@ -113,14 +113,11 @@ public class RoomServiceImpl implements RoomService {
 
     String clientIp = httpRequestService.getClientIpAddress(httpRequest);
     deviceSessionService.validateUniqueSession(user, deviceId, clientIp);
-    if (sessionRepository.existsByNicknameInRoomAndRoomAndIsActiveTrue(request.getNickname(), room)) {
-      throw new BadRequestException("El nickname ya está en uso en esta sala");
-    }
+
 
     UserSession session = UserSession.builder()
             .user(user)
             .room(room)
-            .nicknameInRoom(request.getNickname())
             .deviceId(deviceId)
             .ipAddress(clientIp)
             .userAgent(httpRequest.getHeader("User-Agent"))
@@ -193,7 +190,10 @@ public class RoomServiceImpl implements RoomService {
                     .sentAt(message.getSentAt())
                     .isEdited(message.getIsEdited())
                     .editedAt(message.getEditedAt())
-                    .senderNickname(message.getSession().getNicknameInRoom())
+                    .senderNickname(message.getSession().getUser().getUsername().startsWith("Guest_") ?
+                            message.getSession().getUser().getGuestProfile().getNickname() :
+                            message.getSession().getUser().getAdminProfile().getFirstName() + " " + message.getSession().getUser().getAdminProfile().getLastName() + " (Admin) "
+                    )
                     .senderId(message.getUser().getId())
                     .roomId(message.getRoom().getId())
                     .build())
@@ -243,9 +243,19 @@ public class RoomServiceImpl implements RoomService {
 
 
   private SessionResponse mapToSessionResponse(UserSession session) {
+  log.info("Mapping UserSession {} to SessionResponse", session.getId());
+  log.info("UserSession details - User: {}, Room: {}, JoinedAt: {}, IsActive: {}",
+          session.getUser().getUsername(),
+          session.getRoom().getRoomCode(),
+          session.getJoinedAt(),
+          session.getIsActive()
+  );
     return SessionResponse.builder()
             .id(session.getId())
-            .nicknameInRoom(session.getNicknameInRoom())
+            .nicknameInRoom(session.getUser().getUsername().startsWith("Guest_") ?
+                    session.getUser().getGuestProfile().getNickname() :
+                    session.getUser().getAdminProfile().getFirstName() + " " + session.getUser().getAdminProfile().getLastName() + " (Admin)"
+            )
             .joinedAt(session.getJoinedAt())
             .isActive(session.getIsActive())
             .ipAddress(session.getIpAddress())

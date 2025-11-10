@@ -95,4 +95,6 @@ public class RoomController {
     return userRepository.findByUsernameAndDeletedAtIsNull(username)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
   }
+
+
 }
