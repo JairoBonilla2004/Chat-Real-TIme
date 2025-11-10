@@ -3,6 +3,7 @@ package ec.edu.espe.chat_real_time.Service.room;
 
 import ec.edu.espe.chat_real_time.Service.HttpRequestService;
 import ec.edu.espe.chat_real_time.Service.device.DeviceSessionService;
+import ec.edu.espe.chat_real_time.Service.websocket.WebSocketService;
 import ec.edu.espe.chat_real_time.dto.mapperDTO.RoomMapper;
 import ec.edu.espe.chat_real_time.dto.request.CreateRoomRequest;
 import ec.edu.espe.chat_real_time.dto.request.JoinRoomRequest;
@@ -44,6 +45,7 @@ public class RoomServiceImpl implements RoomService {
   private final PinGenerator pinGeneratorService;
   private final DeviceSessionService deviceSessionService;
   private final HttpRequestService httpRequestService;
+  private final WebSocketService webSocketService;
 
   @Override
   @Transactional
@@ -130,6 +132,8 @@ public class RoomServiceImpl implements RoomService {
     room.incrementCurrentUsers();
     roomRepository.save(room);
 
+    webSocketService.notifyUserJoinedRoom(room.getId(), user);
+
     log.info("User {} joined room {} successfully from device {} (IP: {})",
             user.getUsername(), room.getRoomCode(), deviceId, clientIp);
 
@@ -153,7 +157,7 @@ public class RoomServiceImpl implements RoomService {
 
     room.decrementCurrentUsers();
     roomRepository.save(room);
-
+    webSocketService.notifyUserLeftRoom(roomId, user);
     log.info("User {} left room {} successfully", user.getUsername(), room.getRoomCode());
   }
 

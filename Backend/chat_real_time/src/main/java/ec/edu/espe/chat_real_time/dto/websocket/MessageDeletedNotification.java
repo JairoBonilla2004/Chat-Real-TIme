@@ -1,0 +1,17 @@
+package ec.edu.espe.chat_real_time.dto.websocket;
+
+
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@lombok.Data
+@lombok.Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class MessageDeletedNotification {
+  private Long messageId;
+  private Long roomId;
+  private LocalDateTime timestamp;
+}

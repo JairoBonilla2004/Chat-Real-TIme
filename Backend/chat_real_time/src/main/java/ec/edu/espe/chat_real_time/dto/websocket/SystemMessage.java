@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserStatusMessage {
-  private Long userId;
-  private String username;
-  private String status; // e.g., "ONLINE" or "OFFLINE"
+public class SystemMessage {
+  private String content;
+  private String type; // SYSTEM, INFO, WARNING
   private LocalDateTime timestamp;
 }

@@ -1,19 +1,18 @@
 package ec.edu.espe.chat_real_time.dto.websocket;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Data
-@Builder
-@NoArgsConstructor
+// DTOs internos
+@lombok.Data
+@lombok.Builder
 @AllArgsConstructor
-public class UserStatusMessage {
+@NoArgsConstructor
+public class UserJoinedMessage {
   private Long userId;
   private String username;
-  private String status; // e.g., "ONLINE" or "OFFLINE"
+  private String action;
   private LocalDateTime timestamp;
 }

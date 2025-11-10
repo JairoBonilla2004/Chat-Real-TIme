@@ -17,10 +17,10 @@ import ec.edu.espe.chat_real_time.repository.AttachmentRepository;
 import ec.edu.espe.chat_real_time.repository.MessageRepository;
 import ec.edu.espe.chat_real_time.repository.RoomRepository;
 import ec.edu.espe.chat_real_time.repository.UserSessionRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +43,7 @@ public class MessageServiceImpl implements MessageService{
   private final RoomRepository roomRepository;
   private final UserSessionRepository sessionRepository;
   private final AttachmentRepository attachmentRepository;
+  private final SimpMessagingTemplate messagingTemplate;
 
   @Value("${file.upload-dir}")
   private String uploadDir;
@@ -71,7 +72,13 @@ public class MessageServiceImpl implements MessageService{
     message = messageRepository.save(message);
     log.info("Text message sent successfully: {}", message.getId());
 
-    return MessageMapper.toMessageResponse(message);
+    MessageResponse response = MessageMapper.toMessageResponse(message);
+    messagingTemplate.convertAndSend(
+            "/topic/room/" + room.getId(),
+            response
+    );
+
+    return response;
   }
 
   @Override
@@ -146,7 +153,14 @@ public class MessageServiceImpl implements MessageService{
       throw new BadRequestException("Error al guardar el archivo");
     }
 
-    return MessageMapper.toMessageResponse(message);
+    MessageResponse response = MessageMapper.toMessageResponse(message);
+
+    messagingTemplate.convertAndSend(
+            "/topic/room/" + room.getId(),
+            response
+    );
+
+    return response;
   }
 
   @Override
@@ -160,7 +174,7 @@ public class MessageServiceImpl implements MessageService{
 
     return messageRepository.findByRoomAndIsDeletedFalseOrderBySentAtDesc(room)
             .stream()
-            .map(MessageMapper ::toMessageResponse)
+            .map(MessageMapper::toMessageResponse)
             .collect(Collectors.toList());
   }
 
@@ -187,7 +201,11 @@ public class MessageServiceImpl implements MessageService{
     message.setDeletedAt(LocalDateTime.now());
     messageRepository.save(message);
 
+    messagingTemplate.convertAndSend(
+            "/topic/room/" + message.getRoom().getId(),
+            MessageMapper.toMessageResponse(message)
+    );
+
     log.info("Message {} deleted by user {}", messageId, user.getUsername());
   }
-
 }
