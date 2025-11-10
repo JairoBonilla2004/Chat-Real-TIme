@@ -1,6 +1,7 @@
 package ec.edu.espe.chat_real_time.Service.device;
 
 import ec.edu.espe.chat_real_time.exception.BadRequestException;
+import ec.edu.espe.chat_real_time.model.room.Room;
 import ec.edu.espe.chat_real_time.model.user.User;
 
 
@@ -25,27 +26,28 @@ public class DeviceSessionServiceImpl implements DeviceSessionService {
   @Override
   @Transactional(readOnly = true)
   public void validateUniqueSession(User user, String deviceId, String ipAddress) {
-    List<UserSession> activeSessions = userSessionRepository.findByUserAndIsActiveTrue(user);
+    List<UserSession> allSessions = userSessionRepository.findByUserAndIsActiveTrue(user);
+
+    List<UserSession> activeSessions = allSessions.stream()
+            .filter(s -> Boolean.TRUE.equals(s.getIsActive()))
+            .toList();
 
     if (!activeSessions.isEmpty()) {
       boolean isSameDevice = activeSessions.stream()
               .anyMatch(session ->
-                      session.getDeviceId().equals(deviceId) ||
+                      session.getDeviceId().equals(deviceId) &&
                               session.getIpAddress().equals(ipAddress)
               );
 
       if (isSameDevice) {
-
         throw new BadRequestException(
                 "Ya tienes una sesión activa en esta sala desde este dispositivo. " +
                         "Por favor, sal de la sala actual primero."
         );
       } else {
-
         throw new BadRequestException(
-                "Ya tienes una sesión activa en otra sala desde otro dispositivo (IP: " +
-                        activeSessions.get(0).getIpAddress() + "). " +
-                        "Solo puedes estar conectado desde un dispositivo a la vez."
+                "Ya existe una sesión activa en esta sala desde otro dispositivo o IP. " +
+                        "Por favor, sal de la sesión anterior antes de ingresar."
         );
       }
     }

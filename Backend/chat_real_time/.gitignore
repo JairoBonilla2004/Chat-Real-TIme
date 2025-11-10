@@ -6,7 +6,6 @@ target/
 # Excepciones para incluir otros .properties si existieran
 !src/main/resources/application.properties
 # Ignorar todos los archivos .properties
-*.properties
 ### STS ###
 .apt_generated
 .classpath
