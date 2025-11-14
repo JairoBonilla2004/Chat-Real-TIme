@@ -74,7 +74,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
   }
 
   private Long extractRoomId(String destination) {
-    // Try exact and nested topic forms
     String pattern1 = "/topic/room/{roomId}";
     String pattern2 = "/topic/room/{roomId}/**";
     if (matcher.match(pattern1, destination)) {

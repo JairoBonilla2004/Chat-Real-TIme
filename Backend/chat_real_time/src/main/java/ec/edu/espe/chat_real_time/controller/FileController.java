@@ -44,7 +44,6 @@ public class FileController {
         contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
       }
 
-      // Try to get the original file name from DB
       Optional<Attachment> attachmentOpt = attachmentRepository.findByFileName(fileName);
       String downloadName = attachmentOpt.map(Attachment::getOriginalFileName).orElse(fileName);
 

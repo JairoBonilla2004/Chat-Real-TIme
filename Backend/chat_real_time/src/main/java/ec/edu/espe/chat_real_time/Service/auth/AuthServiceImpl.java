@@ -108,29 +108,39 @@ public class AuthServiceImpl implements AuthService {
     if (request.getNickname() == null || request.getNickname().isBlank()) {
       throw new IllegalArgumentException("El nickname no puede estar vacío");
     }
-
     String clientIp = httpRequestService.getClientIpAddress(httpRequest);
-
-    Optional<GuestProfile> existingProfileOpt = guestProfileRepository.findByNickname(request.getNickname());
+    Optional<GuestProfile> existingProfileOpt =
+            guestProfileRepository.findByNickname(request.getNickname());
 
     if (existingProfileOpt.isPresent()) {
       GuestProfile existingProfile = existingProfileOpt.get();
-      if (existingProfile.getExpiresAt().isAfter(LocalDateTime.now())) {
-        User existingUser = existingProfile.getUser();
-        String token = jwtService.generateAccessToken(existingUser);
-        return AuthResponse.builder()
-                .accessToken(token)
-                .tokenType("Bearer")
-                .expiresIn(jwtService.getAccessTokenExpiration())
-                .guestInfo(UserMapper.toUserGuestResponse(existingProfile))
-                .build();
-      } else {
+      if (existingProfile.getExpiresAt().isBefore(LocalDateTime.now())) {
         userService.delete(existingProfile.getUser());
+        return createNewGuestSession(request, clientIp);
       }
+
+      User existingUser = existingProfile.getUser();
+      String token = jwtService.generateAccessToken(existingUser);
+
+      return AuthResponse.builder()
+              .accessToken(token)
+              .tokenType("Bearer")
+              .expiresIn(jwtService.getAccessTokenExpiration())
+              .guestInfo(UserMapper.toUserGuestResponse(existingProfile))
+              .build();
     }
 
-    String guestUsername = guestUsernamePrefix + UUID.randomUUID().toString().substring(0, 8);
-    String guestNickname = request.getNickname() + "#" + UUID.randomUUID().toString().substring(0, 4);
+    return createNewGuestSession(request, clientIp);
+  }
+
+  private AuthResponse createNewGuestSession(GuestLoginRequest request, String clientIp) {
+
+    String guestUsername =
+            guestUsernamePrefix + UUID.randomUUID().toString().substring(0, 8);
+
+    String guestNickname =
+            request.getNickname() + "#" + UUID.randomUUID().toString().substring(0, 4);
+
     User guestUser = new User();
     guestUser.setUsername(guestUsername);
     guestUser.setIsActive(true);
@@ -146,12 +156,12 @@ public class AuthServiceImpl implements AuthService {
     guestProfile.setUser(guestUser);
 
     guestUser.setGuestProfile(guestProfile);
+
     User savedUser = userService.saveUserDB(guestUser)
             .orElseThrow(() -> new IllegalStateException("Error al guardar el usuario invitado"));
-
-    String accessToken = jwtService.generateAccessToken(savedUser);
+    String token = jwtService.generateAccessToken(savedUser);
     return AuthResponse.builder()
-            .accessToken(accessToken)
+            .accessToken(token)
             .tokenType("Bearer")
             .expiresIn(jwtService.getAccessTokenExpiration())
             .guestInfo(UserMapper.toUserGuestResponse(savedUser.getGuestProfile()))
