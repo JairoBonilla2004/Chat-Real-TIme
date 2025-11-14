@@ -17,11 +17,6 @@ public class CreateRoomRequest {
   @Size(max = 500, message = "La descripción no puede exceder 500 caracteres")
   private String description;
 
-  @NotBlank(message = "El PIN es requerido")
-  @Size(min = 4, max = 10, message = "El PIN debe tener entre 4 y 10 caracteres")
-  @Pattern(regexp = "^[0-9]+$", message = "El PIN debe contener solo números")
-  private String pin;
-
   @NotNull(message = "El tipo de sala es requerido")
   private RoomType type;
 

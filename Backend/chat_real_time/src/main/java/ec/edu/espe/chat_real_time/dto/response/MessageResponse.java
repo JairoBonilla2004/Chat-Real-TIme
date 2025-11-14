@@ -24,4 +24,5 @@ public class MessageResponse {
   private Long senderId;
   private Long roomId;
   private List<AttachmentResponse> attachments;
+  private boolean isDeleted;
 }

@@ -29,10 +29,7 @@ public class WebSocketServiceImpl implements WebSocketService {
     log.info("WebSocket: User {} sending message to room {}", user.getUsername(), request.getRoomId());
 
     try {
-      // Guardar mensaje en BD usando el servicio existente
       MessageResponse message = messageService.sendTextMessage(request, user);
-
-      // Enviar via WebSocket a todos los usuarios de la sala
       messagingTemplate.convertAndSend(
               "/topic/room/" + request.getRoomId(),
               message
@@ -65,10 +62,11 @@ public class WebSocketServiceImpl implements WebSocketService {
   @Override
   public void notifyUserJoinedRoom(Long roomId, User user) {
     log.info("WebSocket: Notifying user {} joined room {}", user.getUsername(), roomId);
+    String displayName = resolveDisplayName(user);
 
     UserJoinedMessage message = UserJoinedMessage.builder()
             .userId(user.getId())
-            .username(user.getUsername())
+            .username(displayName)
             .action("JOINED")
             .timestamp(LocalDateTime.now())
             .build();
@@ -78,27 +76,26 @@ public class WebSocketServiceImpl implements WebSocketService {
             message
     );
 
-    // También enviar mensaje de sistema
     sendSystemMessageToRoom(roomId, user.getUsername() + " se ha unido a la sala");
   }
 
   @Override
   public void notifyUserLeftRoom(Long roomId, User user) {
     log.info("WebSocket: Notifying user {} left room {}", user.getUsername(), roomId);
+    String displayName = resolveDisplayName(user);
 
     UserJoinedMessage message = UserJoinedMessage.builder()
             .userId(user.getId())
-            .username(user.getUsername())
+            .username(displayName)
             .action("LEFT")
             .timestamp(LocalDateTime.now())
             .build();
-
+    log.info("WebSocket: Sending user left message: {}", message);
     messagingTemplate.convertAndSend(
             "/topic/room/" + roomId + "/users",
             message
     );
 
-    // También enviar mensaje de sistema
     sendSystemMessageToRoom(roomId, user.getUsername() + " ha salido de la sala");
   }
 
@@ -172,6 +169,19 @@ public class WebSocketServiceImpl implements WebSocketService {
             "/topic/room/" + roomId + "/update",
             roomData
     );
+  }
+
+  private String resolveDisplayName(User user) {
+    String role = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse("");
+    if (role.startsWith("ROLE_GUEST")) {
+      return user.getGuestProfile() != null ? user.getGuestProfile().getNickname() : user.getUsername();
+    }
+    if (user.getAdminProfile() != null) {
+      String first = user.getAdminProfile().getFirstName();
+      String last = user.getAdminProfile().getLastName();
+      return (first != null ? first : "") + (last != null ? (" " + last) : "") + " (Admin)";
+    }
+    return user.getUsername();
   }
 }
 

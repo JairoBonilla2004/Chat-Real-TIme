@@ -19,10 +19,6 @@ import java.util.Set;
                 @UniqueConstraint(
                         name = "uniq_nickname_per_room",
                         columnNames = {"room_id", "nicknameInRoom", "isActive"}
-                ),
-                @UniqueConstraint(
-                        name = "uniq_user_room_device",
-                        columnNames = {"user_id", "room_id", "deviceId", "isActive"}
                 )
         }
 )

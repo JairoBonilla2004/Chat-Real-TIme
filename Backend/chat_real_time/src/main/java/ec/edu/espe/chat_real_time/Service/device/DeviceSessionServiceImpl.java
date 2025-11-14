@@ -10,12 +10,14 @@ import ec.edu.espe.chat_real_time.repository.UserSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -74,12 +76,14 @@ public class DeviceSessionServiceImpl implements DeviceSessionService {
   @Override
   public String generateDeviceFingerprint(String userAgent, String ipAddress) {
     try {
-      String rawFingerprint = userAgent + "|" + ipAddress + "|" + System.currentTimeMillis();
+      String rawFingerprint = userAgent + "|" + ipAddress + "|" + System.currentTimeMillis() + "|" + UUID.randomUUID();
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
       byte[] hash = digest.digest(rawFingerprint.getBytes(StandardCharsets.UTF_8));
       return Base64.getEncoder().encodeToString(hash).substring(0, 32);
     } catch (NoSuchAlgorithmException e) {
-      return "device_" + System.currentTimeMillis();
+      return "device_" + UUID.randomUUID();
     }
   }
+
+
 }

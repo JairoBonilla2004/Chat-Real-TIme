@@ -2,7 +2,6 @@ package ec.edu.espe.chat_real_time.dto.mapperDTO;
 
 import ec.edu.espe.chat_real_time.dto.response.AttachmentResponse;
 import ec.edu.espe.chat_real_time.dto.response.MessageResponse;
-import ec.edu.espe.chat_real_time.model.Role;
 import ec.edu.espe.chat_real_time.model.message.Message;
 import ec.edu.espe.chat_real_time.model.user.User;
 
@@ -10,7 +9,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MessageMapper {
+
   public static MessageResponse toMessageResponse(Message message) {
+    User user = message.getUser();
+    String roleName = user.getRoles().stream()
+            .findFirst()
+            .map(role -> role.getName())
+            .orElse("ROLE_GUEST");
+
+    String senderNickname = roleName.equals("ROLE_ADMIN")
+            ? user.getAdminProfile().getFirstName() + " " + user.getAdminProfile().getLastName() + " (Admin)"
+            : user.getGuestProfile().getNickname();
+
+    boolean isDeleted = Boolean.TRUE.equals(message.getIsDeleted());
+
     List<AttachmentResponse> attachments = message.getAttachments().stream()
             .map(att -> AttachmentResponse.builder()
                     .id(att.getId())
@@ -22,27 +34,18 @@ public class MessageMapper {
                     .uploadedAt(att.getUploadedAt())
                     .build())
             .collect(Collectors.toList());
-
-    String senderNickname;
-    User user = message.getUser();
-    String role_user = user.getRoles().stream().findFirst().get().getName();
-    if (role_user.equals("ROLE_ADMIN")) {
-      senderNickname = user.getAdminProfile().getFirstName() + " " + user.getAdminProfile().getLastName() + " (Admin)";
-    } else {
-      senderNickname = user.getGuestProfile().getNickname();
-    }
-
     return MessageResponse.builder()
             .id(message.getId())
-            .content(message.getContent())
+            .content(isDeleted ? "" : message.getContent())
             .messageType(message.getMessageType())
             .sentAt(message.getSentAt())
             .isEdited(message.getIsEdited())
             .editedAt(message.getEditedAt())
+            .isDeleted(isDeleted)
             .senderNickname(senderNickname)
-            .senderId(message.getUser().getId())
+            .senderId(user.getId())
             .roomId(message.getRoom().getId())
-            .attachments(attachments)
+            .attachments(isDeleted ? List.of() : attachments)
             .build();
   }
 }
