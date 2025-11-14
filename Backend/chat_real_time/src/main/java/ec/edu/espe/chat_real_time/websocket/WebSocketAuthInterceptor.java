@@ -58,13 +58,11 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
       }
     }
 
-    // Track room subscriptions to associate session -> room for disconnect handling
     if (accessor != null && StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
       String destination = accessor.getDestination();
       String sessionId = accessor.getSessionId();
       if (destination != null && sessionId != null) {
-        // Match /topic/room/{roomId} or /topic/room/{roomId}/**
-        // We’ll extract the roomId
+
         Long roomId = extractRoomId(destination);
         if (roomId != null) {
           subscriptionTracker.map(sessionId, roomId);
