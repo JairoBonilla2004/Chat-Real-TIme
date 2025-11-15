@@ -1,9 +1,12 @@
 package ec.edu.espe.chat_real_time.controller;
 
 
+
 import ec.edu.espe.chat_real_time.Service.auth.AuthService;
 import ec.edu.espe.chat_real_time.dto.request.GuestLoginRequest;
 import ec.edu.espe.chat_real_time.dto.request.LoginRequest;
+import ec.edu.espe.chat_real_time.dto.request.RegisterRequest;
+import ec.edu.espe.chat_real_time.dto.response.RegisterResponse;
 import ec.edu.espe.chat_real_time.dto.response.ApiResponse;
 import ec.edu.espe.chat_real_time.dto.response.AuthResponse;
 import jakarta.servlet.http.Cookie;
@@ -104,5 +107,15 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("Logged out from all devices successfully", null));
   }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<RegisterResponse>> register(
+            @RequestBody RegisterRequest request
+    ) {
+        RegisterResponse response = authService.registerAdmin(request);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Usuario creado exitosamente", null));
+    }
 
 }

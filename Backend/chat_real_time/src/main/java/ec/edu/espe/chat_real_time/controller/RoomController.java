@@ -28,7 +28,7 @@ public class RoomController {
   private final UserRepository userRepository;
 
   @PostMapping("/create")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasRole('ROL_ADMIN')")
   public ResponseEntity<ApiResponse<RoomResponse>> createRoom(
           @Valid @RequestBody CreateRoomRequest request,
           Authentication authentication
