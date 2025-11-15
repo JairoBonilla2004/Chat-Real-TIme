@@ -23,6 +23,7 @@ import ec.edu.espe.chat_real_time.repository.MessageRepository;
 import ec.edu.espe.chat_real_time.repository.RoomRepository;
 import ec.edu.espe.chat_real_time.repository.UserRepository;
 import ec.edu.espe.chat_real_time.repository.UserSessionRepository;
+import ec.edu.espe.chat_real_time.security.jwt.JwtService;
 import ec.edu.espe.chat_real_time.utils.PinGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+// agrega el import:
+// import ec.edu.espe.chat_real_time.security.jwt.JwtService;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +54,9 @@ public class RoomServiceImpl implements RoomService {
   private final DeviceSessionService deviceSessionService;
   private final HttpRequestService httpRequestService;
   private final WebSocketService webSocketService;
-  private final UserRepository userRepository;;
+  private final UserRepository userRepository;
+  private final JwtService jwtService;
+
 
   @Override
   @Transactional
@@ -155,9 +162,10 @@ public class RoomServiceImpl implements RoomService {
       roomRepository.save(room);
 
       webSocketService.notifyUserJoinedRoom(room.getId(), savedUser);
-
-
-      return getRoomDetails(room.getId());
+      String roomToken = jwtService.generateAccessToken(savedUser);
+      RoomDetailResponse details = getRoomDetails(room.getId());
+      details.setToken(roomToken);
+      return details;
   }
 
   @Override

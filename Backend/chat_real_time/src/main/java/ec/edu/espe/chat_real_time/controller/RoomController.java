@@ -7,10 +7,13 @@ import ec.edu.espe.chat_real_time.dto.response.ApiResponse;
 import ec.edu.espe.chat_real_time.dto.response.RoomDetailResponse;
 import ec.edu.espe.chat_real_time.dto.response.RoomResponse;
 import ec.edu.espe.chat_real_time.model.user.User;
+
 import ec.edu.espe.chat_real_time.repository.UserRepository;
+import ec.edu.espe.chat_real_time.security.jwt.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/rooms")
 @RequiredArgsConstructor
@@ -26,8 +31,12 @@ public class RoomController {
 
   private final RoomService roomService;
   private final UserRepository userRepository;
+  private final JwtService jwtService;
 
-  @PostMapping("/create")
+
+
+
+    @PostMapping("/create")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<RoomResponse>> createRoom(
           @Valid @RequestBody CreateRoomRequest request,
@@ -38,15 +47,29 @@ public class RoomController {
     return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success("Sala creada exitosamente", response));
   }
-
     @PostMapping("/join")
     public ResponseEntity<ApiResponse<RoomDetailResponse>> joinRoom(
             @Valid @RequestBody JoinRoomRequest request,
             HttpServletRequest httpRequest
     ) {
-        RoomDetailResponse response = roomService.joinRoom(request, httpRequest);
-        return ResponseEntity.ok(ApiResponse.success("Te has unido a la sala exitosamente", response));
+
+
+        RoomDetailResponse details = roomService.joinRoom(request, httpRequest);
+
+        log.info("JOIN RESPONSE DTO PARA FRONT: {}", details);
+
+        // 3. Enviar al frontend el DTO completo con token incluido
+        return ResponseEntity.ok(
+                ApiResponse.success("Te has unido a la sala exitosamente", details)
+        );
     }
+
+
+
+
+
+
+
     @PostMapping("/{roomId}/leave")
   public ResponseEntity<ApiResponse<Void>> leaveRoom(
           @PathVariable Long roomId,

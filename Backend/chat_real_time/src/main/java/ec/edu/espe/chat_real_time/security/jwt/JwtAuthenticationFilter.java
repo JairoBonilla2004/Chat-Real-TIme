@@ -33,7 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private static final List<String> EXCLUDED_PATHS = List.of(// endpoints que no requieren autenticacion
           "/api/v1/auth/**",
-          "/api/v1/public/**"
+          "/api/v1/public/**",
+          "/api/v1/rooms/join"
   );
 
   @Override

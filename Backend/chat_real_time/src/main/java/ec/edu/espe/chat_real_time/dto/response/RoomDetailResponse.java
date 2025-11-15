@@ -15,4 +15,5 @@ public class RoomDetailResponse {
   private List<SessionResponse> activeSessions;
   private List<MessageResponse> recentMessages;
   private Integer activeUsersCount;
+  private String token;
 }
