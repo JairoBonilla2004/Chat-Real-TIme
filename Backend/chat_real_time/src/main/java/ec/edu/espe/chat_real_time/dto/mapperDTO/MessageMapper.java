@@ -10,42 +10,46 @@ import java.util.stream.Collectors;
 
 public class MessageMapper {
 
-  public static MessageResponse toMessageResponse(Message message) {
-    User user = message.getUser();
-    String roleName = user.getRoles().stream()
-            .findFirst()
-            .map(role -> role.getName())
-            .orElse("ROLE_GUEST");
+    public static MessageResponse toMessageResponse(Message message) {
 
-    String senderNickname = roleName.equals("ROLE_ADMIN")
-            ? user.getAdminProfile().getFirstName() + " " + user.getAdminProfile().getLastName() + " (Admin)"
-            : user.getGuestProfile().getNickname();
+        User user = message.getUser();
+        String roleName = user.getRoles().stream()
+                .findFirst()
+                .map(role -> role.getName())
+                .orElse("ROLE_GUEST");
 
-    boolean isDeleted = Boolean.TRUE.equals(message.getIsDeleted());
+        String senderNickname = roleName.equals("ROLE_ADMIN")
+                ? user.getAdminProfile().getFirstName() + " " + user.getAdminProfile().getLastName() + " (Admin)"
+                : user.getGuestProfile().getNickname();
 
-    List<AttachmentResponse> attachments = message.getAttachments().stream()
-            .map(att -> AttachmentResponse.builder()
-                    .id(att.getId())
-                    .fileName(att.getFileName())
-                    .originalFileName(att.getOriginalFileName())
-                    .fileType(att.getFileType())
-                    .fileSize(att.getFileSize())
-                    .fileUrl(att.getFileUrl())
-                    .uploadedAt(att.getUploadedAt())
-                    .build())
-            .collect(Collectors.toList());
-    return MessageResponse.builder()
-            .id(message.getId())
-            .content(isDeleted ? "" : message.getContent())
-            .messageType(message.getMessageType())
-            .sentAt(message.getSentAt())
-            .isEdited(message.getIsEdited())
-            .editedAt(message.getEditedAt())
-            .isDeleted(isDeleted)
-            .senderNickname(senderNickname)
-            .senderId(user.getId())
-            .roomId(message.getRoom().getId())
-            .attachments(isDeleted ? List.of() : attachments)
-            .build();
-  }
+        boolean isDeleted = Boolean.TRUE.equals(message.getIsDeleted());
+
+        // MAPEAR ATTACHMENTS CORRECTAMENTE
+        List<AttachmentResponse> attachments = message.getAttachments().stream()
+                .map(att -> AttachmentResponse.builder()
+                        .id(att.getId())
+                        .fileName(att.getFileName())
+                        .originalFileName(att.getOriginalFileName())
+                        .fileType(att.getFileType())
+                        .fileSize(att.getFileSize())
+                        .fileUrl(att.getFileUrl())              // ✔️ Cloudinary URL correcto
+                        .uploadedAt(att.getUploadedAt())
+                        .build()
+                )
+                .collect(Collectors.toList());
+
+        return MessageResponse.builder()
+                .id(message.getId())
+                .content(isDeleted ? "" : message.getContent())
+                .messageType(message.getMessageType())
+                .sentAt(message.getSentAt())
+                .isEdited(message.getIsEdited())
+                .editedAt(message.getEditedAt())
+                .isDeleted(isDeleted)
+                .senderNickname(senderNickname)
+                .senderId(user.getId())
+                .roomId(message.getRoom().getId())
+                .attachments(isDeleted ? List.of() : attachments)
+                .build();
+    }
 }

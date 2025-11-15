@@ -58,7 +58,7 @@ public class RoomController {
 
         log.info("JOIN RESPONSE DTO PARA FRONT: {}", details);
 
-        // 3. Enviar al frontend el DTO completo con token incluido
+
         return ResponseEntity.ok(
                 ApiResponse.success("Te has unido a la sala exitosamente", details)
         );

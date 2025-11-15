@@ -43,6 +43,7 @@ public class MessageController {
           @RequestParam("file") MultipartFile file,
           Authentication authentication
   ) {
+
     User user = getUserFromAuthentication(authentication);
     MessageResponse response = messageService.sendFileMessage(roomId, content, file, user);
     return ResponseEntity.status(HttpStatus.CREATED)

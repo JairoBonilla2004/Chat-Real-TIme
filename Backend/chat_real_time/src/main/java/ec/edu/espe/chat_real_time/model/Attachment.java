@@ -33,7 +33,7 @@ public class Attachment {
   @Column(name = "file_size")
   private Long fileSize;
 
-  @Column(name = "file_path", nullable = false, length = 500)
+  @Column(name = "file_path", nullable = true)
   private String filePath;
 
   @Column(name = "file_url", nullable = false, length = 500)
