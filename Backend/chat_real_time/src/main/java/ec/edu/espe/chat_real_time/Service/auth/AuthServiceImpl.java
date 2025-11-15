@@ -252,7 +252,7 @@ public class AuthServiceImpl implements AuthService {
       return RegisterResponse.builder()
               .id(saved.getId())
               .username(saved.getUsername())
-              .role("ROL_ADMIN")
+              .role("ROLE_ADMIN")
               .build();
 
 

@@ -43,20 +43,19 @@ public class Room {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  @Builder.Default
   private RoomType type = RoomType.TEXT;
 
   @Column(name = "max_users")
-  @Builder.Default
-  private Integer maxUsers = 50;
+
+  private Integer maxUsers;
 
   @Column(name = "current_users")
   @Builder.Default
   private Integer currentUsers = 0;
 
   @Column(name = "max_file_size_mb")
-  @Builder.Default
-  private Integer maxFileSizeMb = 10;
+
+  private Integer maxFileSizeMb;
 
   @Column(name = "is_active")
   @Builder.Default

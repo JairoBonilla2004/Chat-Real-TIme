@@ -6,6 +6,7 @@ import ec.edu.espe.chat_real_time.Service.device.DeviceSessionService;
 import ec.edu.espe.chat_real_time.Service.websocket.WebSocketService;
 import ec.edu.espe.chat_real_time.dto.mapperDTO.RoomMapper;
 import ec.edu.espe.chat_real_time.dto.request.CreateRoomRequest;
+import ec.edu.espe.chat_real_time.dto.request.GuestLoginRequest;
 import ec.edu.espe.chat_real_time.dto.request.JoinRoomRequest;
 import ec.edu.espe.chat_real_time.dto.response.MessageResponse;
 import ec.edu.espe.chat_real_time.dto.response.RoomDetailResponse;
@@ -15,10 +16,12 @@ import ec.edu.espe.chat_real_time.exception.BadRequestException;
 import ec.edu.espe.chat_real_time.exception.ResourceNotFoundException;
 import ec.edu.espe.chat_real_time.exception.RoomFullException;
 import ec.edu.espe.chat_real_time.model.room.Room;
+import ec.edu.espe.chat_real_time.model.user.GuestProfile;
 import ec.edu.espe.chat_real_time.model.user.User;
 import ec.edu.espe.chat_real_time.model.user.UserSession;
 import ec.edu.espe.chat_real_time.repository.MessageRepository;
 import ec.edu.espe.chat_real_time.repository.RoomRepository;
+import ec.edu.espe.chat_real_time.repository.UserRepository;
 import ec.edu.espe.chat_real_time.repository.UserSessionRepository;
 import ec.edu.espe.chat_real_time.utils.PinGenerator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,16 +49,18 @@ public class RoomServiceImpl implements RoomService {
   private final DeviceSessionService deviceSessionService;
   private final HttpRequestService httpRequestService;
   private final WebSocketService webSocketService;
+  private final UserRepository userRepository;;
 
   @Override
   @Transactional
   public RoomResponse createRoom(CreateRoomRequest request, User creator) {
-    log.info("Creating room: {} by user: {}", request.getName(), creator.getUsername());
+      log.info("Creating room: {} by user: {}", request.getName(), creator.getUsername());
 
-    String roomCode = generateUniqueRoomCode();
+      String roomCode = generateUniqueRoomCode();
 
-    String plainPin = pinGeneratorService.generatePin(4);
-    String hashedPin = passwordEncoder.encode(plainPin);
+      String plainPin = pinGeneratorService.generatePin(4);
+      String hashedPin = passwordEncoder.encode(plainPin);
+
 
     log.info("Generated PIN for room {}: {}", roomCode, plainPin);
 
@@ -83,8 +88,7 @@ public class RoomServiceImpl implements RoomService {
 
   @Override
   @Transactional
-  public RoomDetailResponse joinRoom(JoinRoomRequest request, User user, HttpServletRequest httpRequest) {
-    log.info("User {} attempting to join room: {}", user.getUsername(), request.getRoomCode());
+  public RoomDetailResponse joinRoom(JoinRoomRequest request,  HttpServletRequest httpRequest) {
 
     Room room = roomRepository.findByRoomCodeAndDeletedAtIsNull(request.getRoomCode())
             .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
@@ -94,7 +98,7 @@ public class RoomServiceImpl implements RoomService {
     }
 
     if (!pinGeneratorService.validatePin(request.getPin(), room.getPinHash())) {
-      log.warn("Invalid PIN attempt for room: {} by user: {}", room.getRoomCode(), user.getUsername());
+
       throw new BadRequestException("PIN incorrecto");
     }
 
@@ -102,39 +106,58 @@ public class RoomServiceImpl implements RoomService {
       throw new RoomFullException("La sala está llena");
     }
 
-    String deviceId = request.getDeviceId();
-    if (deviceId == null || deviceId.isBlank()) {
-      deviceId = deviceSessionService.generateDeviceFingerprint(
-              httpRequest.getHeader("User-Agent"),
-              httpRequestService.getClientIpAddress(httpRequest)
-      );
-      log.info("Generated device fingerprint: {}", deviceId);
+    String nickname;
+
+    if (request.isAnonymous()){
+        nickname = "Anonimo" + UUID.randomUUID().toString().substring(0, 8);
+    } else {
+        if (request.getNickname() == null || request.getNickname().isBlank()) {
+            throw new BadRequestException("Nickname obligatorio");
+        }
+        nickname = request.getNickname();
     }
+      User user = new User();
+      user.setUsername("Guest_" + UUID.randomUUID());
+      user.setIsActive(true);
 
-    String clientIp = httpRequestService.getClientIpAddress(httpRequest);
-    deviceSessionService.validateUniqueSession(user, deviceId, clientIp);
+    GuestProfile profile = new GuestProfile();
+    profile.setNickname(nickname);
+    profile.setExpiresAt(LocalDateTime.now().plusHours(24));
+    profile.setUser(user);
+
+    user.setGuestProfile(profile);
+
+    User savedUser = userRepository.save(user);
+
+    String deviceId = request.getDeviceId();
+      if (deviceId == null || deviceId.isBlank()) {
+          deviceId = deviceSessionService.generateDeviceFingerprint(
+                  httpRequest.getHeader("User-Agent"),
+                  httpRequestService.getClientIpAddress(httpRequest)
+          );
+      }
+
+      String clientIp = httpRequestService.getClientIpAddress(httpRequest);
+
+      // 7. Registrar sesión dentro de la sala
+      UserSession session = UserSession.builder()
+              .user(savedUser)
+              .room(room)
+              .deviceId(deviceId)
+              .ipAddress(clientIp)
+              .userAgent(httpRequest.getHeader("User-Agent"))
+              .isActive(true)
+              .build();
+
+      sessionRepository.save(session);
+
+      room.incrementCurrentUsers();
+      roomRepository.save(room);
+
+      webSocketService.notifyUserJoinedRoom(room.getId(), savedUser);
 
 
-    UserSession session = UserSession.builder()
-            .user(user)
-            .room(room)
-            .deviceId(deviceId)
-            .ipAddress(clientIp)
-            .userAgent(httpRequest.getHeader("User-Agent"))
-            .isActive(true)
-            .build();
-
-    sessionRepository.save(session);
-
-    room.incrementCurrentUsers();
-    roomRepository.save(room);
-
-    webSocketService.notifyUserJoinedRoom(room.getId(), user);
-
-    log.info("User {} joined room {} successfully from device {} (IP: {})",
-            user.getUsername(), room.getRoomCode(), deviceId, clientIp);
-
-    return getRoomDetails(room.getId());
+      return getRoomDetails(room.getId());
   }
 
   @Override
@@ -242,25 +265,27 @@ public class RoomServiceImpl implements RoomService {
   }
 
 
-  private SessionResponse mapToSessionResponse(UserSession session) {
-  log.info("Mapping UserSession {} to SessionResponse", session.getId());
-  log.info("UserSession details - User: {}, Room: {}, JoinedAt: {}, IsActive: {}",
-          session.getUser().getUsername(),
-          session.getRoom().getRoomCode(),
-          session.getJoinedAt(),
-          session.getIsActive()
-  );
-    return SessionResponse.builder()
-            .id(session.getId())
-            .nicknameInRoom(session.getUser().getUsername().startsWith("Guest_") ?
-                    session.getUser().getGuestProfile().getNickname() :
-                    session.getUser().getAdminProfile().getFirstName() + " " + session.getUser().getAdminProfile().getLastName() + " (Admin)"
-            )
-            .joinedAt(session.getJoinedAt())
-            .isActive(session.getIsActive())
-            .ipAddress(session.getIpAddress())
-            .build();
-  }
+    private SessionResponse mapToSessionResponse(UserSession session) {
+        User u = session.getUser();
+
+        String nicknameInRoom = resolveNickname(session.getUser());
+
+
+        return SessionResponse.builder()
+                .id(session.getId())
+                .nicknameInRoom(nicknameInRoom)
+                .joinedAt(session.getJoinedAt())
+                .isActive(session.getIsActive())
+                .ipAddress(session.getIpAddress())
+                .build();
+    }
+    private String resolveNickname(User u) {
+        if (u.getGuestProfile() != null) return u.getGuestProfile().getNickname();
+        if (u.getAdminProfile() != null)
+            return u.getAdminProfile().getFirstName() + " " + u.getAdminProfile().getLastName() + " (Admin)";
+        return u.getUsername();
+    }
+
 
 
 }

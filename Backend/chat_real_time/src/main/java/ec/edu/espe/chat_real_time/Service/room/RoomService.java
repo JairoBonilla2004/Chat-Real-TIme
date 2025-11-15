@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface RoomService {
   RoomResponse createRoom(CreateRoomRequest request, User creator);
-  RoomDetailResponse joinRoom(JoinRoomRequest request, User user, HttpServletRequest httpRequest);
+  RoomDetailResponse joinRoom(JoinRoomRequest request,HttpServletRequest httpRequest);
   void leaveRoom(Long roomId, User user);
   RoomResponse getRoomByCode(String roomCode);
   RoomDetailResponse getRoomDetails(Long roomId);

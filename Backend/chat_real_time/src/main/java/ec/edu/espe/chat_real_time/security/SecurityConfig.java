@@ -36,9 +36,11 @@ public class SecurityConfig {
           "/ws",
           "/app/**",
           "/topic/**",
-          "/queue/**"
+          "/queue/**",
+          "/api/v1/rooms/join"
 
   };
+
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
