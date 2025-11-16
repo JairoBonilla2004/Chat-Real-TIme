@@ -216,10 +216,12 @@ Para unirte a una sala como Invitado, no necesitas registrarte, pero debes propo
 - **Límite de Dispositivos:** Solo se permite ingresar a una reunión por dispositivo a la vez. No puedes unirte a dos salas o a la misma sala dos veces desde el mismo navegador o dispositivo.
 
 </details>
-
+---
 <details>
 <summary><b><i style="font-size:18px;">➡️Flujo del Programa</i></b></summary>
 
 ![](imagenes//FlujoSala.png)
 
 </details>
+
+---
