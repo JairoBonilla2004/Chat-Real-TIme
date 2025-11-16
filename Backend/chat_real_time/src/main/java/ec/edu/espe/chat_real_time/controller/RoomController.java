@@ -24,88 +24,88 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RoomController {
 
-  private final RoomService roomService;
-  private final UserRepository userRepository;
+    private final RoomService roomService;
+    private final UserRepository userRepository;
 
-  @PostMapping("/create")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<RoomResponse>> createRoom(
-          @Valid @RequestBody CreateRoomRequest request,
-          Authentication authentication
-  ) {
-    User user = getUserFromAuthentication(authentication);
-    RoomResponse response = roomService.createRoom(request, user);
-    return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success("Sala creada exitosamente", response));
-  }
+    @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<RoomResponse>> createRoom(
+            @Valid @RequestBody CreateRoomRequest request,
+            Authentication authentication
+    ) {
+        User user = getUserFromAuthentication(authentication);
+        RoomResponse response = roomService.createRoom(request, user);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Sala creada exitosamente", response));
+    }
 
-  @PostMapping("/join")
-  public ResponseEntity<ApiResponse<RoomDetailResponse>> joinRoom(
-          @Valid @RequestBody JoinRoomRequest request,
-          Authentication authentication,
-          HttpServletRequest httpRequest
-  ) {
-    User user = getUserFromAuthentication(authentication);
-    RoomDetailResponse response = roomService.joinRoom(request, user, httpRequest);
-    return ResponseEntity.ok(ApiResponse.success("Te has unido a la sala exitosamente", response));
-  }
+    @PostMapping("/join")
+    public ResponseEntity<ApiResponse<RoomDetailResponse>> joinRoom(
+            @Valid @RequestBody JoinRoomRequest request,
+            Authentication authentication,
+            HttpServletRequest httpRequest
+    ) {
+        User user = getUserFromAuthentication(authentication);
+        RoomDetailResponse response = roomService.joinRoom(request, user, httpRequest);
+        return ResponseEntity.ok(ApiResponse.success("Te has unido a la sala exitosamente", response));
+    }
 
-  @PostMapping("/{roomId}/leave")
-  public ResponseEntity<ApiResponse<Void>> leaveRoom(
-          @PathVariable Long roomId,
-          Authentication authentication
-  ) {
-    User user = getUserFromAuthentication(authentication);
-    roomService.leaveRoom(roomId, user);
-    return ResponseEntity.ok(ApiResponse.success("Has salido de la sala exitosamente", null));
-  }
+    @PostMapping("/{roomId}/leave")
+    public ResponseEntity<ApiResponse<Void>> leaveRoom(
+            @PathVariable Long roomId,
+            Authentication authentication
+    ) {
+        User user = getUserFromAuthentication(authentication);
+        roomService.leaveRoom(roomId, user);
+        return ResponseEntity.ok(ApiResponse.success("Has salido de la sala exitosamente", null));
+    }
 
-  @GetMapping
-  public ResponseEntity<ApiResponse<List<RoomResponse>>> getAllActiveRooms() {
-    List<RoomResponse> rooms = roomService.getAllActiveRooms();
-    return ResponseEntity.ok(ApiResponse.success("Salas obtenidas exitosamente", rooms));
-  }
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<RoomResponse>>> getAllActiveRooms() {
+        List<RoomResponse> rooms = roomService.getAllActiveRooms();
+        return ResponseEntity.ok(ApiResponse.success("Salas obtenidas exitosamente", rooms));
+    }
 
-  @GetMapping("/code/{roomCode}")
-  public ResponseEntity<ApiResponse<RoomResponse>> getRoomByCode(@PathVariable String roomCode) {
-    RoomResponse room = roomService.getRoomByCode(roomCode);
-    return ResponseEntity.ok(ApiResponse.success("Sala encontrada", room));
-  }
+    @GetMapping("/code/{roomCode}")
+    public ResponseEntity<ApiResponse<RoomResponse>> getRoomByCode(@PathVariable String roomCode) {
+        RoomResponse room = roomService.getRoomByCode(roomCode);
+        return ResponseEntity.ok(ApiResponse.success("Sala encontrada", room));
+    }
 
-  @GetMapping("/{roomId}/details")
-  public ResponseEntity<ApiResponse<RoomDetailResponse>> getRoomDetails(
-          @PathVariable Long roomId
-  ) {
-    RoomDetailResponse details = roomService.getRoomDetails(roomId);
-    return ResponseEntity.ok(ApiResponse.success("Detalles de sala obtenidos", details));
-  }
+    @GetMapping("/{roomId}/details")
+    public ResponseEntity<ApiResponse<RoomDetailResponse>> getRoomDetails(
+            @PathVariable Long roomId
+    ) {
+        RoomDetailResponse details = roomService.getRoomDetails(roomId);
+        return ResponseEntity.ok(ApiResponse.success("Detalles de sala obtenidos", details));
+    }
 
-  @GetMapping("/my-rooms")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<List<RoomResponse>>> getMyRooms(
-          Authentication authentication
-  ) {
-    User user = getUserFromAuthentication(authentication);
-    List<RoomResponse> rooms = roomService.getUserCreatedRooms(user);
-    return ResponseEntity.ok(ApiResponse.success("Tus salas obtenidas exitosamente", rooms));
-  }
+    @GetMapping("/my-rooms")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<RoomResponse>>> getMyRooms(
+            Authentication authentication
+    ) {
+        User user = getUserFromAuthentication(authentication);
+        List<RoomResponse> rooms = roomService.getUserCreatedRooms(user);
+        return ResponseEntity.ok(ApiResponse.success("Tus salas obtenidas exitosamente", rooms));
+    }
 
-  @PostMapping("/{roomId}/reset-pin")
-  @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<ApiResponse<RoomResponse>> resetPin(
-          @PathVariable Long roomId,
-          Authentication authentication
-  ) {
-    User user = getUserFromAuthentication(authentication);
-    RoomResponse response = roomService.resetRoomPin(roomId, user);
-    return ResponseEntity.ok(ApiResponse.success("PIN reseteado correctamente", response));
-  }
+    @PostMapping("/{roomId}/reset-pin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<RoomResponse>> resetPin(
+            @PathVariable Long roomId,
+            Authentication authentication
+    ) {
+        User user = getUserFromAuthentication(authentication);
+        RoomResponse response = roomService.resetRoomPin(roomId, user);
+        return ResponseEntity.ok(ApiResponse.success("PIN reseteado correctamente", response));
+    }
 
-  private User getUserFromAuthentication(Authentication authentication) {
-    String username = authentication.getName();
-    return userRepository.findByUsernameAndDeletedAtIsNull(username)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-  }
+    private User getUserFromAuthentication(Authentication authentication) {
+        String username = authentication.getName();
+        return userRepository.findByUsernameAndDeletedAtIsNull(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
 
 
 }

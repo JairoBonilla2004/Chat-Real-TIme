@@ -1,7 +1,7 @@
 package ec.edu.espe.chat_real_time.Service.device;
 
 import ec.edu.espe.chat_real_time.exception.BadRequestException;
-import ec.edu.espe.chat_real_time.model.room.Room;
+
 import ec.edu.espe.chat_real_time.model.user.User;
 
 

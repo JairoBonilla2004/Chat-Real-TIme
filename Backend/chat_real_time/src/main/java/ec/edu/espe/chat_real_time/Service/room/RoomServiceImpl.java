@@ -38,248 +38,248 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RoomServiceImpl implements RoomService {
 
-  private final RoomRepository roomRepository;
-  private final UserSessionRepository sessionRepository;
-  private final MessageRepository messageRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final PinGenerator pinGeneratorService;
-  private final DeviceSessionService deviceSessionService;
-  private final HttpRequestService httpRequestService;
-  private final WebSocketService webSocketService;
+    private final RoomRepository roomRepository;
+    private final UserSessionRepository sessionRepository;
+    private final MessageRepository messageRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final PinGenerator pinGeneratorService;
+    private final DeviceSessionService deviceSessionService;
+    private final HttpRequestService httpRequestService;
+    private final WebSocketService webSocketService;
 
-  @Override
-  @Transactional
-  public RoomResponse createRoom(CreateRoomRequest request, User creator) {
-    log.info("Creating room: {} by user: {}", request.getName(), creator.getUsername());
+    @Override
+    @Transactional
+    public RoomResponse createRoom(CreateRoomRequest request, User creator) {
+        log.info("Creating room: {} by user: {}", request.getName(), creator.getUsername());
 
-    String roomCode = generateUniqueRoomCode();
+        String roomCode = generateUniqueRoomCode();
 
-    String plainPin = pinGeneratorService.generatePin(4);
-    String hashedPin = passwordEncoder.encode(plainPin);
+        String plainPin = pinGeneratorService.generatePin(4);
+        String hashedPin = passwordEncoder.encode(plainPin);
 
-    log.info("Generated PIN for room {}: {}", roomCode, plainPin);
+        log.info("Generated PIN for room {}: {}", roomCode, plainPin);
 
-    Room room = Room.builder()
-            .roomCode(roomCode)
-            .name(request.getName())
-            .description(request.getDescription())
-            .pinHash(hashedPin)
-            .type(request.getType())
-            .maxUsers(request.getMaxUsers())
-            .currentUsers(0)
-            .maxFileSizeMb(request.getMaxFileSizeMb())
-            .isActive(true)
-            .creator(creator)
-            .build();
+        Room room = Room.builder()
+                .roomCode(roomCode)
+                .name(request.getName())
+                .description(request.getDescription())
+                .pinHash(hashedPin)
+                .type(request.getType())
+                .maxUsers(request.getMaxUsers())
+                .currentUsers(0)
+                .maxFileSizeMb(request.getMaxFileSizeMb())
+                .isActive(true)
+                .creator(creator)
+                .build();
 
-    room = roomRepository.save(room);
-    log.info("Room created successfully: {} with code: {}", room.getName(), room.getRoomCode());
+        room = roomRepository.save(room);
+        log.info("Room created successfully: {} with code: {}", room.getName(), room.getRoomCode());
 
-    RoomResponse response = RoomMapper.toRoomResponse(room);
-    response.setPlainPin(plainPin);
+        RoomResponse response = RoomMapper.toRoomResponse(room);
+        response.setPlainPin(plainPin);
 
-    return response;
-  }
-
-  @Override
-  @Transactional
-  public RoomDetailResponse joinRoom(JoinRoomRequest request, User user, HttpServletRequest httpRequest) {
-    log.info("User {} attempting to join room: {}", user.getUsername(), request.getRoomCode());
-
-    Room room = roomRepository.findByRoomCodeAndDeletedAtIsNull(request.getRoomCode())
-            .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
-
-    if (!room.getIsActive()) {
-      throw new BadRequestException("La sala no está activa");
+        return response;
     }
 
-    if (!pinGeneratorService.validatePin(request.getPin(), room.getPinHash())) {
-      log.warn("Invalid PIN attempt for room: {} by user: {}", room.getRoomCode(), user.getUsername());
-      throw new BadRequestException("PIN incorrecto");
-    }
+    @Override
+    @Transactional
+    public RoomDetailResponse joinRoom(JoinRoomRequest request, User user, HttpServletRequest httpRequest) {
+        log.info("User {} attempting to join room: {}", user.getUsername(), request.getRoomCode());
 
-    if (room.isFull()) {
-      throw new RoomFullException("La sala está llena");
-    }
+        Room room = roomRepository.findByRoomCodeAndDeletedAtIsNull(request.getRoomCode())
+                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
 
-    String deviceId = request.getDeviceId();
-    if (deviceId == null || deviceId.isBlank()) {
-      deviceId = deviceSessionService.generateDeviceFingerprint(
-              httpRequest.getHeader("User-Agent"),
-              httpRequestService.getClientIpAddress(httpRequest)
-      );
-      log.info("Generated device fingerprint: {}", deviceId);
-    }
-
-    String clientIp = httpRequestService.getClientIpAddress(httpRequest);
-    deviceSessionService.validateUniqueSession(user, deviceId, clientIp);
-
-
-    UserSession session = UserSession.builder()
-            .user(user)
-            .room(room)
-            .deviceId(deviceId)
-            .ipAddress(clientIp)
-            .userAgent(httpRequest.getHeader("User-Agent"))
-            .isActive(true)
-            .build();
-
-    sessionRepository.save(session);
-
-    room.incrementCurrentUsers();
-    roomRepository.save(room);
-
-    webSocketService.notifyUserJoinedRoom(room.getId(), user);
-
-    log.info("User {} joined room {} successfully from device {} (IP: {})",
-            user.getUsername(), room.getRoomCode(), deviceId, clientIp);
-
-    return getRoomDetails(room.getId());
-  }
-
-  @Override
-  @Transactional
-  public void leaveRoom(Long roomId, User user) {
-    log.info("User {} leaving room: {}", user.getUsername(), roomId);
-
-    Room room = roomRepository.findByIdAndDeletedAtIsNull(roomId)
-            .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
-
-    UserSession session = sessionRepository.findByUserAndRoomAndIsActiveTrue(user, room)
-            .orElseThrow(() -> new BadRequestException("No estás conectado a esta sala"));
-
-    session.setIsActive(false);
-    session.setLeftAt(LocalDateTime.now());
-    sessionRepository.save(session);
-
-    room.decrementCurrentUsers();
-    roomRepository.save(room);
-    webSocketService.notifyUserLeftRoom(roomId, user);
-    log.info("User {} left room {} successfully", user.getUsername(), room.getRoomCode());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public RoomResponse getRoomByCode(String roomCode) {
-    Room room = roomRepository.findByRoomCodeAndDeletedAtIsNull(roomCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
-
-    return RoomMapper.toRoomResponse(room);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public RoomDetailResponse getRoomDetails(Long roomId) {
-    Room room = roomRepository.findByIdAndDeletedAtIsNull(roomId)
-            .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
-
-    List<UserSession> activeSessions = sessionRepository.findByRoomAndIsActiveTrue(room);
-
-    List<SessionResponse> sessionResponses = activeSessions.stream()
-            .map(this::mapToSessionResponse)
-            .collect(Collectors.toList());
-
-    List<MessageResponse> recentMessages = messageRepository
-            .findByRoomAndIsDeletedFalseOrderBySentAtDesc(room)
-            .stream()
-            .limit(50)
-            .map(message -> MessageResponse.builder()
-                    .id(message.getId())
-                    .content(message.getContent())
-                    .messageType(message.getMessageType())
-                    .sentAt(message.getSentAt())
-                    .isEdited(message.getIsEdited())
-                    .editedAt(message.getEditedAt())
-                    .senderNickname(message.getSession().getUser().getUsername().startsWith("Guest_") ?
-                            message.getSession().getUser().getGuestProfile().getNickname() :
-                            message.getSession().getUser().getAdminProfile().getFirstName() + " " + message.getSession().getUser().getAdminProfile().getLastName() + " (Admin) "
-                    )
-                    .senderId(message.getUser().getId())
-                    .roomId(message.getRoom().getId())
-                    .build())
-            .collect(Collectors.toList());
-
-    return RoomDetailResponse.builder()
-            .room(RoomMapper.toRoomResponse(room))
-            .activeSessions(sessionResponses)
-            .recentMessages(recentMessages)
-            .activeUsersCount(activeSessions.size())
-            .build();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<RoomResponse> getAllActiveRooms() {
-    return roomRepository.findAllActiveRooms()
-            .stream()
-            .map(RoomMapper::toRoomResponse)
-            .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<RoomResponse> getUserCreatedRooms(User user) {
-    return roomRepository.findByCreatorAndDeletedAtIsNull(user)
-            .stream()
-            .map(RoomMapper::toRoomResponse)
-            .collect(Collectors.toList());
-  }
-
-  @Override
-  public boolean validateRoomPin(String roomCode, String pin) {
-    Room room = roomRepository.findByRoomCodeAndDeletedAtIsNull(roomCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
-
-    return passwordEncoder.matches(pin, room.getPinHash());
-  }
-
-        @Override
-        @Transactional
-        public RoomResponse resetRoomPin(Long roomId, User requester) {
-                Room room = roomRepository.findByIdAndDeletedAtIsNull(roomId)
-                                                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
-
-                if (room.getCreator() == null || !room.getCreator().getId().equals(requester.getId())) {
-                        throw new BadRequestException("Solo el creador de la sala puede resetear el PIN");
-                }
-
-                String plainPin = pinGeneratorService.generatePin(4);
-                room.setPinHash(passwordEncoder.encode(plainPin));
-                roomRepository.save(room);
-
-                RoomResponse response = RoomMapper.toRoomResponse(room);
-                response.setPlainPin(plainPin);
-                return response;
+        if (!room.getIsActive()) {
+            throw new BadRequestException("La sala no está activa");
         }
 
-  private String generateUniqueRoomCode() {
-    String roomCode;
-    do {
-      roomCode = "ROOM" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-    } while (roomRepository.existsByRoomCode(roomCode));
-    return roomCode;
-  }
+        if (!pinGeneratorService.validatePin(request.getPin(), room.getPinHash())) {
+            log.warn("Invalid PIN attempt for room: {} by user: {}", room.getRoomCode(), user.getUsername());
+            throw new BadRequestException("PIN incorrecto");
+        }
+
+        if (room.isFull()) {
+            throw new RoomFullException("La sala está llena");
+        }
+
+        String deviceId = request.getDeviceId();
+        if (deviceId == null || deviceId.isBlank()) {
+            deviceId = deviceSessionService.generateDeviceFingerprint(
+                    httpRequest.getHeader("User-Agent"),
+                    httpRequestService.getClientIpAddress(httpRequest)
+            );
+            log.info("Generated device fingerprint: {}", deviceId);
+        }
+
+        String clientIp = httpRequestService.getClientIpAddress(httpRequest);
+        deviceSessionService.validateUniqueSession(user, deviceId, clientIp);
 
 
-  private SessionResponse mapToSessionResponse(UserSession session) {
-  log.info("Mapping UserSession {} to SessionResponse", session.getId());
-  log.info("UserSession details - User: {}, Room: {}, JoinedAt: {}, IsActive: {}",
-          session.getUser().getUsername(),
-          session.getRoom().getRoomCode(),
-          session.getJoinedAt(),
-          session.getIsActive()
-  );
-    return SessionResponse.builder()
-            .id(session.getId())
-            .nicknameInRoom(session.getUser().getUsername().startsWith("Guest_") ?
-                    session.getUser().getGuestProfile().getNickname() :
-                    session.getUser().getAdminProfile().getFirstName() + " " + session.getUser().getAdminProfile().getLastName() + " (Admin)"
-            )
-            .joinedAt(session.getJoinedAt())
-            .isActive(session.getIsActive())
-            .ipAddress(session.getIpAddress())
-            .build();
-  }
+        UserSession session = UserSession.builder()
+                .user(user)
+                .room(room)
+                .deviceId(deviceId)
+                .ipAddress(clientIp)
+                .userAgent(httpRequest.getHeader("User-Agent"))
+                .isActive(true)
+                .build();
+
+        sessionRepository.save(session);
+
+        room.incrementCurrentUsers();
+        roomRepository.save(room);
+
+        webSocketService.notifyUserJoinedRoom(room.getId(), user);
+
+        log.info("User {} joined room {} successfully from device {} (IP: {})",
+                user.getUsername(), room.getRoomCode(), deviceId, clientIp);
+
+        return getRoomDetails(room.getId());
+    }
+
+    @Override
+    @Transactional
+    public void leaveRoom(Long roomId, User user) {
+        log.info("User {} leaving room: {}", user.getUsername(), roomId);
+
+        Room room = roomRepository.findByIdAndDeletedAtIsNull(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
+
+        UserSession session = sessionRepository.findByUserAndRoomAndIsActiveTrue(user, room)
+                .orElseThrow(() -> new BadRequestException("No estás conectado a esta sala"));
+
+        session.setIsActive(false);
+        session.setLeftAt(LocalDateTime.now());
+        sessionRepository.save(session);
+
+        room.decrementCurrentUsers();
+        roomRepository.save(room);
+        webSocketService.notifyUserLeftRoom(roomId, user);
+        log.info("User {} left room {} successfully", user.getUsername(), room.getRoomCode());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RoomResponse getRoomByCode(String roomCode) {
+        Room room = roomRepository.findByRoomCodeAndDeletedAtIsNull(roomCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
+
+        return RoomMapper.toRoomResponse(room);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RoomDetailResponse getRoomDetails(Long roomId) {
+        Room room = roomRepository.findByIdAndDeletedAtIsNull(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
+
+        List<UserSession> activeSessions = sessionRepository.findByRoomAndIsActiveTrue(room);
+
+        List<SessionResponse> sessionResponses = activeSessions.stream()
+                .map(this::mapToSessionResponse)
+                .collect(Collectors.toList());
+
+        List<MessageResponse> recentMessages = messageRepository
+                .findByRoomAndIsDeletedFalseOrderBySentAtDesc(room)
+                .stream()
+                .limit(50)
+                .map(message -> MessageResponse.builder()
+                        .id(message.getId())
+                        .content(message.getContent())
+                        .messageType(message.getMessageType())
+                        .sentAt(message.getSentAt())
+                        .isEdited(message.getIsEdited())
+                        .editedAt(message.getEditedAt())
+                        .senderNickname(message.getSession().getUser().getUsername().startsWith("Guest_") ?
+                                message.getSession().getUser().getGuestProfile().getNickname() :
+                                message.getSession().getUser().getAdminProfile().getFirstName() + " " + message.getSession().getUser().getAdminProfile().getLastName() + " (Admin) "
+                        )
+                        .senderId(message.getUser().getId())
+                        .roomId(message.getRoom().getId())
+                        .build())
+                .collect(Collectors.toList());
+
+        return RoomDetailResponse.builder()
+                .room(RoomMapper.toRoomResponse(room))
+                .activeSessions(sessionResponses)
+                .recentMessages(recentMessages)
+                .activeUsersCount(activeSessions.size())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RoomResponse> getAllActiveRooms() {
+        return roomRepository.findAllActiveRooms()
+                .stream()
+                .map(RoomMapper::toRoomResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RoomResponse> getUserCreatedRooms(User user) {
+        return roomRepository.findByCreatorAndDeletedAtIsNull(user)
+                .stream()
+                .map(RoomMapper::toRoomResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean validateRoomPin(String roomCode, String pin) {
+        Room room = roomRepository.findByRoomCodeAndDeletedAtIsNull(roomCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
+
+        return passwordEncoder.matches(pin, room.getPinHash());
+    }
+
+    @Override
+    @Transactional
+    public RoomResponse resetRoomPin(Long roomId, User requester) {
+        Room room = roomRepository.findByIdAndDeletedAtIsNull(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala no encontrada"));
+
+        if (room.getCreator() == null || !room.getCreator().getId().equals(requester.getId())) {
+            throw new BadRequestException("Solo el creador de la sala puede resetear el PIN");
+        }
+
+        String plainPin = pinGeneratorService.generatePin(4);
+        room.setPinHash(passwordEncoder.encode(plainPin));
+        roomRepository.save(room);
+
+        RoomResponse response = RoomMapper.toRoomResponse(room);
+        response.setPlainPin(plainPin);
+        return response;
+    }
+
+    private String generateUniqueRoomCode() {
+        String roomCode;
+        do {
+            roomCode = "ROOM" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        } while (roomRepository.existsByRoomCode(roomCode));
+        return roomCode;
+    }
+
+
+    private SessionResponse mapToSessionResponse(UserSession session) {
+        log.info("Mapping UserSession {} to SessionResponse", session.getId());
+        log.info("UserSession details - User: {}, Room: {}, JoinedAt: {}, IsActive: {}",
+                session.getUser().getUsername(),
+                session.getRoom().getRoomCode(),
+                session.getJoinedAt(),
+                session.getIsActive()
+        );
+        return SessionResponse.builder()
+                .id(session.getId())
+                .nicknameInRoom(session.getUser().getUsername().startsWith("Guest_") ?
+                        session.getUser().getGuestProfile().getNickname() :
+                        session.getUser().getAdminProfile().getFirstName() + " " + session.getUser().getAdminProfile().getLastName() + " (Admin)"
+                )
+                .joinedAt(session.getJoinedAt())
+                .isActive(session.getIsActive())
+                .ipAddress(session.getIpAddress())
+                .build();
+    }
 
 
 }
