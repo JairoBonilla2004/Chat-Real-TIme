@@ -3,11 +3,13 @@
 
 Este proyecto implementa un sistema de chat en tiempo real con salas seguras, desarrollado como parte del Proyecto Integrador del Parcial I de la materia**Aplicaciones Distribuidas**. El sistema permite comunicación instantánea mediante **WebSockets** , salas protegidas con **PIN**. gestión de archivos en salas multimedia y un flujo de interacción administrado por un backend robusto en **Spring Boot**
 
+---
+
 ## Objetivos
 
 **General:** Desarrollar un sistema de chat seguro y en tiempo real, con salas administradas mediante PIN, utilizando tecnologías distribuidas.
-
-**Específicos:**
+<details>
+<summary>**Específicos:** </summary>
 
 * Implementar autenticación del administrador.
 * Permitir la creación de salas con ID único y PIN.
@@ -17,9 +19,16 @@ Este proyecto implementa un sistema de chat en tiempo real con salas seguras, de
 * Garantizar sesión única por dispositivo.
 * Ofrecer un frontend responsivo y funcional.
 
+</details>
 
-## Arquitectura
+---
+<details>
+<summary>## Arquitectura</summary>
+
 ![](imagenes/Arquitectura.png)
+</details>
+
+---
 
 ## Metodología
 
@@ -28,7 +37,8 @@ Este proyecto implementa un sistema de chat en tiempo real con salas seguras, de
 * docker 
 * cuenta en cloudinary (subir archivos multimedia)
 
-## Requisitos del Sistema
+<details>
+<summary> ## Requisitos del Sistema </summary>
 
 Asegúrate de tener instalado el siguiente software:
 
@@ -38,14 +48,14 @@ Asegúrate de tener instalado el siguiente software:
 * **Git**
 * **MySQL 8** (o utilizar la opción recomendada de Docker)
 * **cuenta en cloudinary**
-
-
+</details>
+--- 
 ## Base de Datos con Docker (RECOMENDADO)
 
 La manera más sencilla de levantar la base de datos MySQL es utilizando Docker.
 
-
-### Ejecución del Proyecto Backend 
+<details>
+<summary> ### Ejecución del Proyecto Backend  </summary>
 ## 1. Clonar el Repositorio
 ```bash
 https://github.com/JairoBonilla2004/Chat-Real-TIme.git
@@ -92,8 +102,11 @@ cd backend
 mvn spring-boot:run
 ```
 El backend estará disponible en **http://localhost:8080**.
+</details>
 
-### Ejecución del Proyecto Frontend 
+--- 
+<details>
+<summary> ### Ejecución del Proyecto Frontend </summary>
 ## 1. Clonar el Repositorio
 Abre una nueva terminal (manteniendo el backend en ejecución) y navega a la carpeta del frontend.
 ```bash
@@ -107,7 +120,8 @@ npm run dev
 ```
 
 El backend estará disponible en **http://localhost:3000**.
-
+</ details>
+---
 
 ## 🚀 Cómo funciona la aplicación
 
