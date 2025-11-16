@@ -36,15 +36,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
           "WHERE u.id = :userId AND r.name = :roleName")
   boolean userHasRole(@Param("userId") Long userId, @Param("roleName") String roleName);
 
+  // Native delete for MySQL: delete joined guest_profiles and users rows in one statement
   @Modifying
   @Transactional
-  @Query("""
-              DELETE FROM User u
-              WHERE u.id IN (
-                  SELECT g.user.id
-                  FROM GuestProfile g
-                  WHERE g.expiresAt < :now
-              )
-          """)
-  int deleteAllExpiredGuests(LocalDateTime now);
+  @Query(value = "DELETE u, gp FROM users u JOIN guest_profiles gp ON gp.id = u.id WHERE gp.expires_at < :now", nativeQuery = true)
+  int deleteAllExpiredGuests(@Param("now") LocalDateTime now);
 }

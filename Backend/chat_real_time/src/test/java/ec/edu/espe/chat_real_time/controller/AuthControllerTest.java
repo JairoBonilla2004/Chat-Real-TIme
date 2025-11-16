@@ -3,10 +3,9 @@ package ec.edu.espe.chat_real_time.controller;
 import ec.edu.espe.chat_real_time.Service.auth.AuthService;
 import ec.edu.espe.chat_real_time.dto.request.GuestLoginRequest;
 import ec.edu.espe.chat_real_time.dto.request.LoginRequest;
-import ec.edu.espe.chat_real_time.dto.request.RegisterRequest;
+import ec.edu.espe.chat_real_time.dto.request.RegisterAdminRequest;
 import ec.edu.espe.chat_real_time.dto.response.ApiResponse;
 import ec.edu.espe.chat_real_time.dto.response.AuthResponse;
-import ec.edu.espe.chat_real_time.dto.response.RegisterResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -108,22 +107,18 @@ class AuthControllerTest {
 
     @Test
     void testRegister() {
-        RegisterRequest request = new RegisterRequest();
+        RegisterAdminRequest request = new RegisterAdminRequest();
 
-        RegisterResponse registerResponse = mock(RegisterResponse.class);
+        AuthResponse authResponse = mockAuthResponse();
 
-        when(registerResponse.getId()).thenReturn(1L);
-        when(registerResponse.getUsername()).thenReturn("jnnjnjnj");
-        when(registerResponse.getRole()).thenReturn("ROLE_ADMIN");
+        when(authService.registerAdmin(eq(request))).thenReturn(authResponse);
 
-        when(authService.registerAdmin(eq(request))).thenReturn(registerResponse);
+        ResponseEntity<ApiResponse<AuthResponse>> response =
+                controller.registerAdmin(request);
 
-        ResponseEntity<ApiResponse<RegisterResponse>> response =
-                controller.register(request);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Usuario creado exitosamente", response.getBody().getMessage());
-        assertNull(response.getBody().getData()); // el controller devuelve null
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("Administrador registrado correctamente", response.getBody().getMessage());
+        assertNotNull(response.getBody().getData());
     }
 
 }

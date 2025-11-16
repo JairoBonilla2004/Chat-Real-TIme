@@ -8,7 +8,6 @@ import ec.edu.espe.chat_real_time.dto.response.RoomDetailResponse;
 import ec.edu.espe.chat_real_time.dto.response.RoomResponse;
 import ec.edu.espe.chat_real_time.model.user.User;
 import ec.edu.espe.chat_real_time.repository.UserRepository;
-import ec.edu.espe.chat_real_time.security.jwt.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +26,6 @@ class RoomControllerTest {
 
     private RoomService roomService;
     private UserRepository userRepository;
-    private JwtService jwtService;
 
     private RoomController controller;
 
@@ -38,9 +36,8 @@ class RoomControllerTest {
     void setUp() {
         roomService = mock(RoomService.class);
         userRepository = mock(UserRepository.class);
-        jwtService = mock(JwtService.class);
 
-        controller = new RoomController(roomService, userRepository, jwtService);
+        controller = new RoomController(roomService, userRepository);
 
         authentication = mock(Authentication.class);
 
@@ -76,16 +73,16 @@ class RoomControllerTest {
         HttpServletRequest httpReq = mock(HttpServletRequest.class);
 
         RoomDetailResponse detail = new RoomDetailResponse();
-        when(roomService.joinRoom(request, httpReq)).thenReturn(detail);
+        when(roomService.joinRoom(request, mockUser, httpReq)).thenReturn(detail);
 
         ResponseEntity<ApiResponse<RoomDetailResponse>> response =
-                controller.joinRoom(request, httpReq);
+                controller.joinRoom(request, authentication, httpReq);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Te has unido a la sala exitosamente", response.getBody().getMessage());
         assertNotNull(response.getBody().getData());
 
-        verify(roomService).joinRoom(request, httpReq);
+        verify(roomService).joinRoom(request, mockUser, httpReq);
     }
 
 
