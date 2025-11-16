@@ -1,10 +1,4 @@
-<style>
-  summary {
 
-    font-style: italic;     
-    font-size: 20px;        
-  }
-</style>
 
 
 # Sistema de Chat en Tiempo Real con Salas Seguras
@@ -21,7 +15,7 @@ Este proyecto fue elaborado por Alejandro Andrade, Jairo Bonilla, Axel Herrera y
 Desarrollar un sistema de chat seguro y en tiempo real, con salas administradas mediante PIN, utilizando tecnologías distribuidas.
 
 <details>
-<summary><b>Objetivos Específicos:</b></summary>
+<summary><b><i style="font-size:20px;">Objetivos Específicos:</i></b></summary>
 
 
 * Implementar autenticación del administrador.
@@ -37,7 +31,7 @@ Desarrollar un sistema de chat seguro y en tiempo real, con salas administradas 
 ---
 
 <details>
-<summary><b> Arquitectura</b></summary>
+<summary><b><i style="font-size:18px;">Arquitectura</i></b></summary>
 
 ![](imagenes/Arquitectura.png)
 
@@ -48,13 +42,13 @@ Desarrollar un sistema de chat seguro y en tiempo real, con salas administradas 
 ## Metodología
 
 <details>
-<summary><b>Lenguaje y herramientas:</b></summary>
+<summary><b><i style="font-size:18px;">Lenguaje y herramientas:</i></b></summary>
   - Spring Boot y MySQL  
   - Docker  
   - Cuenta en Cloudinary (para subir archivos multimedia)
-
+</details>
 <details>
-<summary><b>Requisitos del Sistema</b></summary>
+<summary><b><i style="font-size:18px;">Requisitos del Sistema</i></b></summary>
 
 Asegúrate de tener instalado el siguiente software:
 
@@ -71,7 +65,7 @@ Asegúrate de tener instalado el siguiente software:
 
 
 <details>
-<summary><b>Ejecución del Proyecto Backend  </b></summary>
+<summary><b><i style="font-size:18px;">Ejecución del Proyecto Backend</i></b></summary>
 
 ## Base de Datos con Docker (RECOMENDADO)
 
@@ -128,7 +122,7 @@ El backend estará disponible en **http://localhost:8080**.
 
 --- 
 <details>
-<summary><b>Ejecución del Proyecto Frontend </b></summary>
+<summary><b><i style="font-size:18px;">Ejecución del Proyecto Frontend</i></b></summary>
 
 ## 1. Clonar el Repositorio
 Abre una nueva terminal (manteniendo el backend en ejecución) y navega a la carpeta del frontend.
@@ -154,7 +148,7 @@ Esta aplicación está diseñada para facilitar la comunicación instantánea en
 ---
 
 <details>
-<summary>🧑‍💻 Roles de Usuario</summary>
+<summary><i style="font-size:16px;">🧑‍💻 Roles de Usuario</i></summary>
 
 El sistema distingue entre dos roles principales para gestionar el acceso y la funcionalidad de las salas:
 
@@ -166,7 +160,7 @@ El sistema distingue entre dos roles principales para gestionar el acceso y la f
 </details>
 
 <details>
-<summary>🔑 Acceso y Autenticación</summary>
+<summary><i style="font-size:16px;">🔑 Acceso y Autenticación</i></summary>
 
 - **Registro:** Para obtener el rol de Administrador, el primer paso es registrarse en la plataforma.
 - **Inicio de Sesión:** Una vez registrado, inicia sesión utilizando tu nombre de usuario y contraseña para acceder a las funcionalidades de gestión.
@@ -174,7 +168,7 @@ El sistema distingue entre dos roles principales para gestionar el acceso y la f
 </details>
 
 <details>
-<summary>➕ Creación de Salas (Solo Administradores)</summary>
+<summary><i style="font-size:16px;">➕ Creación de Salas (Solo Administradores)</i></summary>
 
 Como Administrador, puedes crear una sala configurando las siguientes características:
 
@@ -195,7 +189,7 @@ El máximo de megabytes (MB) que se permite subir en los archivos multimedia.
 </details>
 
 <details>
-<summary>📌 PIN de Acceso</summary>
+<summary><i style="font-size:16px;">📌 PIN de Acceso</i></summary>
 
 Una vez creada la sala, el sistema te proporcionará un **PIN de Sala**. Este PIN es la clave de acceso que debes compartir con los Invitados.
 
@@ -204,7 +198,7 @@ Una vez creada la sala, el sistema te proporcionará un **PIN de Sala**. Este PI
 </details>
 
 <details>
-<summary>➡️Ingreso como Invitado</summary>
+<summary><i style="font-size:16px;">➡️Ingreso como Invitado</i></summary>
 
 Para unirte a una sala como Invitado, no necesitas registrarte, pero debes proporcionar la información de la sala:
 
@@ -215,7 +209,7 @@ Para unirte a una sala como Invitado, no necesitas registrarte, pero debes propo
 </details>
 
 <details>
-<summary>⚠️Cosas a Tener en Cuenta</summary>
+<summary><i style="font-size:16px;">⚠️Cosas a Tener en Cuenta</i></summary>
 
 - **Sesión Volátil:** La sala de chat funciona de manera similar a una reunión de Google Meet:  
   Si recargas la página o cierras la pestaña, saldrás de la sala y tendrás que volver a ingresar con el PIN y el Nickname.
@@ -224,7 +218,7 @@ Para unirte a una sala como Invitado, no necesitas registrarte, pero debes propo
 </details>
 
 <details>
-<summary>➡️Flujo del Programa</summary>
+<summary><b><i style="font-size:18px;">➡️Flujo del Programa</i></b></summary>
 
 ![](imagenes//FlujoSala.png)
 
