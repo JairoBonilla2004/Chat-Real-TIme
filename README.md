@@ -1,3 +1,12 @@
+<style>
+  summary {
+
+    font-style: italic;     
+    font-size: 20px;        
+  }
+</style>
+
+
 # Sistema de Chat en Tiempo Real con Salas Seguras
 
 Este proyecto implementa un sistema de chat en tiempo real con salas seguras, desarrollado como parte del Proyecto Integrador del Parcial I de la materia **Aplicaciones Distribuidas**. El sistema permite comunicación instantánea mediante **WebSockets**, salas protegidas con **PIN**, gestión de archivos en salas multimedia y un flujo de interacción administrado por un backend robusto en **Spring Boot**.
@@ -38,7 +47,8 @@ Desarrollar un sistema de chat seguro y en tiempo real, con salas administradas 
 
 ## Metodología
 
-* **Lenguaje y herramientas:**  
+<details>
+<summary><b>Lenguaje y herramientas:</b></summary>
   - Spring Boot y MySQL  
   - Docker  
   - Cuenta en Cloudinary (para subir archivos multimedia)
@@ -58,12 +68,14 @@ Asegúrate de tener instalado el siguiente software:
 </details>
 
 --- 
-## Base de Datos con Docker (RECOMENDADO)
 
-La manera más sencilla de levantar la base de datos MySQL es utilizando Docker.
 
 <details>
 <summary><b>Ejecución del Proyecto Backend  </b></summary>
+
+## Base de Datos con Docker (RECOMENDADO)
+
+La manera más sencilla de levantar la base de datos MySQL es utilizando Docker.
 
 ## 1. Clonar el Repositorio
 
