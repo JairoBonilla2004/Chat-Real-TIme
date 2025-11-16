@@ -10,18 +10,16 @@ Este proyecto implementa un sistema de chat en tiempo real con salas seguras, de
 **Específicos:**
 
 * Implementar autenticación del administrador.
-
 * Permitir la creación de salas con ID único y PIN.
-
 * Integrar mensajería bidireccional con WebSockets.
-
 * Habilitar salas multimedia para subir archivos.
-
 * Asegurar concurrencia mediante hilos.
-
 * Garantizar sesión única por dispositivo.
-
 * Ofrecer un frontend responsivo y funcional.
+
+
+## Arquitectura
+![](imagenes/Arquitectura.png)
 
 ## Metodología
 
@@ -109,3 +107,80 @@ npm run dev
 ```
 
 El backend estará disponible en **http://localhost:3000**.
+
+
+## 🚀 Cómo funciona la aplicación
+
+Esta aplicación está diseñada para facilitar la comunicación instantánea en salas virtuales con distintos niveles de acceso y funcionalidades. A continuación, se detalla el flujo de uso.
+
+---
+
+<details>
+<summary>🧑‍💻 Roles de Usuario</summary>
+
+El sistema distingue entre dos roles principales para gestionar el acceso y la funcionalidad de las salas:
+
+| Rol | Descripción | Permisos |
+|-----|-------------|----------|
+| **Administrador** | Usuario registrado y autenticado. | Crear, Ver y Gestionar salas. |
+| **Invitado** | Usuario no registrado que accede a una sala. | Unirse a salas existentes (solo necesita la URL y/o PIN). |
+
+</details>
+
+<details>
+<summary>🔑 Acceso y Autenticación</summary>
+
+- **Registro:** Para obtener el rol de Administrador, el primer paso es registrarse en la plataforma.
+- **Inicio de Sesión:** Una vez registrado, inicia sesión utilizando tu nombre de usuario y contraseña para acceder a las funcionalidades de gestión.
+
+</details>
+
+<details>
+<summary>➕ Creación de Salas (Solo Administradores)</summary>
+
+Como Administrador, puedes crear una sala configurando las siguientes características:
+
+**Tipo de Sala:**
+
+- **Multimedia:** Permite a los participantes subir archivos multimedia (imágenes, videos, etc.) además de enviar texto.
+- **Solo Texto:** Solo permite el envío de mensajes de texto.
+
+**Nombre de la Sala:**  
+Un nombre descriptivo para identificar la reunión.
+
+**Capacidad:**  
+El número máximo de personas que pueden unirse a la sala.
+
+**Límite de Carga (Solo Multimedia):**  
+El máximo de megabytes (MB) que se permite subir en los archivos multimedia.
+
+</details>
+
+<details>
+<summary>📌 PIN de Acceso</summary>
+
+Una vez creada la sala, el sistema te proporcionará un **PIN de Sala**. Este PIN es la clave de acceso que debes compartir con los Invitados.
+
+> 📝 Nota: Si olvidas el PIN de una sala, el sistema te ofrece la opción de restablecerlo por uno nuevo.
+
+</details>
+
+<details>
+<summary>➡️Ingreso como Invitado</summary>
+
+Para unirte a una sala como Invitado, no necesitas registrarte, pero debes proporcionar la información de la sala:
+
+- **Nickname:** Un apodo obligatorio que será visible para todos los participantes de la sala.  
+- **Nombre de la Sala:** El nombre exacto de la sala.  
+- **PIN de Acceso:** El código secreto que debe ser proporcionado por el Administrador de la sala.
+
+</details>
+
+<details>
+<summary>⚠️Cosas a Tener en Cuenta</summary>
+
+- **Sesión Volátil:** La sala de chat funciona de manera similar a una reunión de Google Meet:  
+  Si recargas la página o cierras la pestaña, saldrás de la sala y tendrás que volver a ingresar con el PIN y el Nickname.
+- **Límite de Dispositivos:** Solo se permite ingresar a una reunión por dispositivo a la vez. No puedes unirte a dos salas o a la misma sala dos veces desde el mismo navegador o dispositivo.
+
+</details>
