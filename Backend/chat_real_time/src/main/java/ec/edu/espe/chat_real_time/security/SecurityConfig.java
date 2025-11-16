@@ -36,12 +36,9 @@ public class SecurityConfig {
           "/ws",
           "/app/**",
           "/topic/**",
-          "/queue/**",
-          "/api/v1/messages/**",
-          "/api/v1/rooms/join"
+          "/queue/**"
 
   };
-
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -54,8 +51,6 @@ public class SecurityConfig {
                     .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                     .requestMatchers("/api/v1/rooms/create").hasAnyRole("ADMIN", "USER")
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/v1/messages/**").permitAll()
-
                     .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

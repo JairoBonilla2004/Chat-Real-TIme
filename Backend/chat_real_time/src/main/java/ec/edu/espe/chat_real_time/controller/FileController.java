@@ -1,0 +1,122 @@
+package ec.edu.espe.chat_real_time.controller;
+
+import ec.edu.espe.chat_real_time.exception.ResourceNotFoundException;
+import ec.edu.espe.chat_real_time.model.Attachment;
+import ec.edu.espe.chat_real_time.repository.AttachmentRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+@RestController
+@RequiredArgsConstructor
+@Slf4j
+public class FileController {
+
+  @Value("${file.upload-dir}")
+  private String uploadDir;
+
+  private final AttachmentRepository attachmentRepository;
+
+  @GetMapping("/api/files/{fileName:.+}")
+  public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {
+    try {
+      Path filePath = Paths.get(uploadDir).resolve(fileName).normalize();
+      if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+        throw new ResourceNotFoundException("Archivo no encontrado");
+      }
+
+      String contentType = Files.probeContentType(filePath);
+      if (contentType == null) {
+        contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+      }
+
+      Optional<Attachment> attachmentOpt = attachmentRepository.findByFileName(fileName);
+      String downloadName = attachmentOpt.map(Attachment::getOriginalFileName).orElse(fileName);
+
+      Resource resource = new FileSystemResource(filePath);
+
+      return ResponseEntity.ok()
+              .contentType(MediaType.parseMediaType(contentType))
+              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadName + "\"")
+              .body(resource);
+    } catch (IOException ex) {
+      log.error("Error al servir archivo {}", fileName, ex);
+      throw new ResourceNotFoundException("Archivo no disponible");
+    }
+  }
+
+  // Public download endpoint that proxies Cloudinary and sets filename for consistent downloads
+  @GetMapping("/api/v1/public/files/{attachmentId}/download")
+  public ResponseEntity<Resource> downloadAttachment(@PathVariable Long attachmentId) {
+    Attachment att = attachmentRepository.findById(attachmentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Archivo no encontrado"));
+
+    String originalName = att.getOriginalFileName();
+    String storedName = att.getFileName();
+    String urlStr = att.getFileUrl();
+    if (urlStr == null || urlStr.isBlank()) {
+      throw new ResourceNotFoundException("URL de archivo no disponible");
+    }
+
+    String filename = (originalName != null && !originalName.isBlank()) ? originalName :
+            (storedName != null && !storedName.isBlank() ? storedName : "file");
+
+    try {
+      URL url = new URL(urlStr);
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setInstanceFollowRedirects(true);
+      conn.setRequestMethod("GET");
+      conn.connect();
+
+      int status = conn.getResponseCode();
+      if (status >= 400) {
+        log.error("Fallo al obtener archivo desde origen (status {}): {}", status, urlStr);
+        throw new ResourceNotFoundException("Archivo no disponible para descarga");
+      }
+
+      String contentType = att.getFileType();
+      if (contentType == null || contentType.isBlank()) {
+        contentType = conn.getContentType();
+      }
+      if (contentType == null || contentType.isBlank()) {
+        contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+      }
+
+      long contentLength = conn.getContentLengthLong();
+      InputStream inputStream = conn.getInputStream();
+      InputStreamResource resource = new InputStreamResource(inputStream);
+
+      ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
+              .contentType(MediaType.parseMediaType(contentType))
+              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+              .header(HttpHeaders.CACHE_CONTROL, "private, max-age=604800");
+
+      if (contentLength > 0) {
+        builder = builder.contentLength(contentLength);
+      }
+
+      return builder.body(resource);
+    } catch (IOException e) {
+      log.error("Error al descargar archivo desde origen: {}", urlStr, e);
+      throw new ResourceNotFoundException("Error al descargar el archivo");
+    }
+  }
+}

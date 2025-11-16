@@ -6,17 +6,18 @@ import ec.edu.espe.chat_real_time.Service.user.UserServiceImpl;
 import ec.edu.espe.chat_real_time.dto.mapperDTO.UserMapper;
 import ec.edu.espe.chat_real_time.dto.request.GuestLoginRequest;
 import ec.edu.espe.chat_real_time.dto.request.LoginRequest;
-import ec.edu.espe.chat_real_time.dto.request.RegisterRequest;
-import ec.edu.espe.chat_real_time.dto.response.RegisterResponse;
+import ec.edu.espe.chat_real_time.dto.request.RegisterAdminRequest;
 import ec.edu.espe.chat_real_time.dto.response.AuthResponse;
 import ec.edu.espe.chat_real_time.exception.InvalidTokenException;
 import ec.edu.espe.chat_real_time.model.RefreshToken;
 import ec.edu.espe.chat_real_time.model.Role;
-import ec.edu.espe.chat_real_time.model.user.AdminProfile;
 import ec.edu.espe.chat_real_time.model.user.GuestProfile;
+import ec.edu.espe.chat_real_time.model.user.AdminProfile;
 import ec.edu.espe.chat_real_time.model.user.User;
 import ec.edu.espe.chat_real_time.repository.GuestProfileRepository;
 import ec.edu.espe.chat_real_time.repository.RoleRepository;
+import ec.edu.espe.chat_real_time.repository.AdminProfileRepository;
+import ec.edu.espe.chat_real_time.repository.UserRepository;
 import ec.edu.espe.chat_real_time.security.jwt.JwtService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,9 +27,9 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ec.edu.espe.chat_real_time.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -45,11 +46,11 @@ public class AuthServiceImpl implements AuthService {
   private final UserServiceImpl userService;
   private final RoleRepository roleRepository;
   private final GuestProfileRepository guestProfileRepository;
-  private final UserRepository userRepository;
+  private final AdminProfileRepository adminProfileRepository;
   private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
 
-
-    @Value("${app.guest.session-duration-hours}")
+  @Value("${app.guest.session-duration-hours}")
   private int guestSessionDurationHours;
 
   @Value("${app.guest.username-prefix}")
@@ -110,6 +111,51 @@ public class AuthServiceImpl implements AuthService {
     }
   }
 
+  @Override
+  @Transactional
+  public AuthResponse registerAdmin(RegisterAdminRequest request) {
+    // Validate uniqueness safely (no exceptions used for control flow)
+    if (userRepository.existsByUsername(request.getUsername())) {
+      throw new IllegalArgumentException("El nombre de usuario ya existe");
+    }
+    if (adminProfileRepository.existsByEmail(request.getEmail())) {
+      throw new IllegalArgumentException("El email ya está registrado");
+    }
+
+    // Build user
+    User admin = new User();
+    admin.setUsername(request.getUsername());
+    admin.setPassword(passwordEncoder.encode(request.getPassword()));
+    admin.setIsActive(true);
+    admin.setEnabled(true);
+    admin.setAccountNonLocked(true);
+    admin.setAccountNonExpired(true);
+    admin.setCredentialsNonExpired(true);
+
+    Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+            .orElseThrow(() -> new EntityNotFoundException("Rol 'ROLE_ADMIN' no encontrado"));
+    admin.getRoles().add(adminRole);
+
+    AdminProfile profile = new AdminProfile();
+    profile.setFirstName(request.getFirstName());
+    profile.setLastName(request.getLastName());
+    profile.setEmail(request.getEmail());
+    profile.setPhone(request.getPhone());
+    profile.setUser(admin);
+    admin.setAdminProfile(profile);
+
+    User saved = userService.saveUserDB(admin)
+            .orElseThrow(() -> new IllegalStateException("No se pudo guardar el administrador"));
+
+    // Auto-login optional: generate token so UI can continuar
+    String accessToken = jwtService.generateAccessToken(saved);
+    return AuthResponse.builder()
+            .accessToken(accessToken)
+            .tokenType("Bearer")
+            .expiresIn(jwtService.getAccessTokenExpiration())
+            .userInfo(ec.edu.espe.chat_real_time.dto.mapperDTO.UserMapper.toUserAdminResponse(saved.getAdminProfile()))
+            .build();
+  }
   @Override
   @Transactional
   public AuthResponse guestLogin(GuestLoginRequest request, HttpServletRequest httpRequest) {
@@ -222,42 +268,6 @@ public class AuthServiceImpl implements AuthService {
             .build();
 
   }
-  @Override
-  @Transactional
-    public RegisterResponse registerAdmin (RegisterRequest request){
-      if (userRepository.existsByUsername(request.getUsername())) {
-          throw new IllegalArgumentException("El username ya existe");
-      }
-      User newUser = new User();
-      newUser.setUsername(request.getUsername());
-
-      newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-      newUser.setIsActive(true);
-
-      Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-              .orElseThrow(() -> new RuntimeException("Role 'ROLE_ADMIN' no encontrado"));
-      newUser.getRoles().add(adminRole);
-
-      AdminProfile profile = new AdminProfile();
-      profile.setFirstName(request.getFirstName());
-      profile.setLastName(request.getLastName());
-      profile.setEmail(request.getEmail());
-      profile.setPhone(request.getPhone());
-      profile.setUser(newUser);
-
-      newUser.setAdminProfile(profile);
-
-      User saved = userRepository.save(newUser);
-
-      return RegisterResponse.builder()
-              .id(saved.getId())
-              .username(saved.getUsername())
-              .role("ROLE_ADMIN")
-              .build();
-
-
-  }
-
 
 
 }

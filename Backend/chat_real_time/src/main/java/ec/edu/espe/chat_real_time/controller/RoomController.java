@@ -7,13 +7,10 @@ import ec.edu.espe.chat_real_time.dto.response.ApiResponse;
 import ec.edu.espe.chat_real_time.dto.response.RoomDetailResponse;
 import ec.edu.espe.chat_real_time.dto.response.RoomResponse;
 import ec.edu.espe.chat_real_time.model.user.User;
-
 import ec.edu.espe.chat_real_time.repository.UserRepository;
-import ec.edu.espe.chat_real_time.security.jwt.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,8 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/rooms")
 @RequiredArgsConstructor
@@ -31,12 +26,8 @@ public class RoomController {
 
   private final RoomService roomService;
   private final UserRepository userRepository;
-  private final JwtService jwtService;
 
-
-
-
-    @PostMapping("/create")
+  @PostMapping("/create")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<RoomResponse>> createRoom(
           @Valid @RequestBody CreateRoomRequest request,
@@ -47,30 +38,19 @@ public class RoomController {
     return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success("Sala creada exitosamente", response));
   }
-    @PostMapping("/join")
-    public ResponseEntity<ApiResponse<RoomDetailResponse>> joinRoom(
-            @Valid @RequestBody JoinRoomRequest request,
-            HttpServletRequest httpRequest
-    ) {
 
+  @PostMapping("/join")
+  public ResponseEntity<ApiResponse<RoomDetailResponse>> joinRoom(
+          @Valid @RequestBody JoinRoomRequest request,
+          Authentication authentication,
+          HttpServletRequest httpRequest
+  ) {
+    User user = getUserFromAuthentication(authentication);
+    RoomDetailResponse response = roomService.joinRoom(request, user, httpRequest);
+    return ResponseEntity.ok(ApiResponse.success("Te has unido a la sala exitosamente", response));
+  }
 
-        RoomDetailResponse details = roomService.joinRoom(request, httpRequest);
-
-        log.info("JOIN RESPONSE DTO PARA FRONT: {}", details);
-
-
-        return ResponseEntity.ok(
-                ApiResponse.success("Te has unido a la sala exitosamente", details)
-        );
-    }
-
-
-
-
-
-
-
-    @PostMapping("/{roomId}/leave")
+  @PostMapping("/{roomId}/leave")
   public ResponseEntity<ApiResponse<Void>> leaveRoom(
           @PathVariable Long roomId,
           Authentication authentication
@@ -81,14 +61,12 @@ public class RoomController {
   }
 
   @GetMapping
-  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<List<RoomResponse>>> getAllActiveRooms() {
     List<RoomResponse> rooms = roomService.getAllActiveRooms();
     return ResponseEntity.ok(ApiResponse.success("Salas obtenidas exitosamente", rooms));
   }
 
   @GetMapping("/code/{roomCode}")
-  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<RoomResponse>> getRoomByCode(@PathVariable String roomCode) {
     RoomResponse room = roomService.getRoomByCode(roomCode);
     return ResponseEntity.ok(ApiResponse.success("Sala encontrada", room));
@@ -110,6 +88,17 @@ public class RoomController {
     User user = getUserFromAuthentication(authentication);
     List<RoomResponse> rooms = roomService.getUserCreatedRooms(user);
     return ResponseEntity.ok(ApiResponse.success("Tus salas obtenidas exitosamente", rooms));
+  }
+
+  @PostMapping("/{roomId}/reset-pin")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<ApiResponse<RoomResponse>> resetPin(
+          @PathVariable Long roomId,
+          Authentication authentication
+  ) {
+    User user = getUserFromAuthentication(authentication);
+    RoomResponse response = roomService.resetRoomPin(roomId, user);
+    return ResponseEntity.ok(ApiResponse.success("PIN reseteado correctamente", response));
   }
 
   private User getUserFromAuthentication(Authentication authentication) {

@@ -19,8 +19,6 @@ public class UserServiceImpl implements  UserService{
 
   private final UserRepository userRepository;
 
-
-
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void recordFailedLoginAttempt(String username) {
     User user = userRepository.findByUsername(username)

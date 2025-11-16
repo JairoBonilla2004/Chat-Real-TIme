@@ -1,13 +1,11 @@
 package ec.edu.espe.chat_real_time.controller;
 
 
-
 import ec.edu.espe.chat_real_time.Service.auth.AuthService;
 import ec.edu.espe.chat_real_time.dto.request.GuestLoginRequest;
 import ec.edu.espe.chat_real_time.dto.request.LoginRequest;
-import ec.edu.espe.chat_real_time.dto.request.RegisterRequest;
-import ec.edu.espe.chat_real_time.dto.response.RegisterResponse;
 import ec.edu.espe.chat_real_time.dto.response.ApiResponse;
+import ec.edu.espe.chat_real_time.dto.request.RegisterAdminRequest;
 import ec.edu.espe.chat_real_time.dto.response.AuthResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -72,6 +70,15 @@ public class AuthController {
             .body(ApiResponse.success("Token refreshed successfully", authResponse));
   }
 
+  @PostMapping("/register-admin")
+  public ResponseEntity<ApiResponse<AuthResponse>> registerAdmin(
+          @Valid @RequestBody RegisterAdminRequest request
+  ) {
+    AuthResponse response = authService.registerAdmin(request);
+    return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.success("Administrador registrado correctamente", response));
+  }
+
   @PostMapping("/logout")
   public ResponseEntity<ApiResponse<String>> logout(
           @CookieValue(value = "refreshToken", required = false) String refreshToken, //el requi
@@ -107,15 +114,5 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("Logged out from all devices successfully", null));
   }
-
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponse>> register(
-            @RequestBody RegisterRequest request
-    ) {
-        RegisterResponse response = authService.registerAdmin(request);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success("Usuario creado exitosamente", null));
-    }
 
 }

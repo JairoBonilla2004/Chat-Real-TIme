@@ -22,7 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
   boolean existsByUsernameAndDeletedAtIsNull(String username);
 
-
   @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = 'ROLE_ADMIN' AND u.deletedAt IS NULL")
   List<User> findAllAdmins();
 

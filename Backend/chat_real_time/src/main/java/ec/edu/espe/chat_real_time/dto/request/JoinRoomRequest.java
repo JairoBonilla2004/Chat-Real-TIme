@@ -1,7 +1,6 @@
 package ec.edu.espe.chat_real_time.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,12 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JoinRoomRequest {
-    private boolean anonymous;
-
-    @NotBlank(message = "El nickname es requerido")
-    @Pattern(regexp = "^[A-Za-zÑñ ]+$", message = "El nickname solo debe contener letras")
-    @Size(min = 6, max = 50, message = "El nickname debe tener mínimo 6  y maximo 50 caracteres")
-    private String nickname;
   @NotBlank(message = "El código de sala es requerido")
   private String roomCode;
   @NotBlank(message = "El PIN es requerido")
