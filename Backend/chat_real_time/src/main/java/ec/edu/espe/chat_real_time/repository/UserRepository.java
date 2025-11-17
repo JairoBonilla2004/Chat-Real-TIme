@@ -36,9 +36,36 @@ public interface UserRepository extends JpaRepository<User, Long> {
           "WHERE u.id = :userId AND r.name = :roleName")
   boolean userHasRole(@Param("userId") Long userId, @Param("roleName") String roleName);
 
-  // Native delete for MySQL: delete joined guest_profiles and users rows in one statement
+  // Primero elimina las relaciones en user_roles para usuarios con guest profiles expirados
   @Modifying
   @Transactional
-  @Query(value = "DELETE u, gp FROM users u JOIN guest_profiles gp ON gp.id = u.id WHERE gp.expires_at < :now", nativeQuery = true)
-  int deleteAllExpiredGuests(@Param("now") LocalDateTime now);
+  @Query(value = "DELETE ur FROM user_roles ur " +
+          "INNER JOIN users u ON ur.user_id = u.id " +
+          "INNER JOIN guest_profiles gp ON u.id = gp.id " +
+          "WHERE gp.expires_at < :now", nativeQuery = true)
+  void deleteExpiredGuestRoles(@Param("now") LocalDateTime now);
+
+  // Elimina los guest profiles expirados
+  @Modifying
+  @Transactional
+  @Query(value = "DELETE gp FROM guest_profiles gp " +
+          "WHERE gp.expires_at < :now", nativeQuery = true)
+  void deleteExpiredGuestProfiles(@Param("now") LocalDateTime now);
+
+  // Finalmente elimina los usuarios que ya no tienen guest profile (huérfanos)
+  @Modifying
+  @Transactional
+  @Query(value = "DELETE u FROM users u " +
+          "WHERE u.id NOT IN (SELECT id FROM guest_profiles) " +
+          "AND u.id NOT IN (SELECT id FROM admin_profiles) " +
+          "AND NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id)", nativeQuery = true)
+  int deleteOrphanUsers();
+
+  // Método principal que orquesta la eliminación
+  @Transactional
+  default int deleteAllExpiredGuests(LocalDateTime now) {
+    deleteExpiredGuestRoles(now);
+    deleteExpiredGuestProfiles(now);
+    return deleteOrphanUsers();
+  }
 }
