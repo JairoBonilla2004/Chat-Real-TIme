@@ -148,7 +148,7 @@ Esta aplicación está diseñada para facilitar la comunicación instantánea en
 ---
 
 <details>
-<summary><i style="font-size:16px;">🧑‍💻 Roles de Usuario</i></summary>
+<summary><i style="font-size:16px;"> Roles de Usuario</i></summary>
 
 El sistema distingue entre dos roles principales para gestionar el acceso y la funcionalidad de las salas:
 
@@ -160,7 +160,7 @@ El sistema distingue entre dos roles principales para gestionar el acceso y la f
 </details>
 
 <details>
-<summary><i style="font-size:16px;">🔑 Acceso y Autenticación</i></summary>
+<summary><i style="font-size:16px;">Acceso y Autenticación</i></summary>
 
 - **Registro:** Para obtener el rol de Administrador, el primer paso es registrarse en la plataforma.
 - **Inicio de Sesión:** Una vez registrado, inicia sesión utilizando tu nombre de usuario y contraseña para acceder a las funcionalidades de gestión.
@@ -189,7 +189,7 @@ El máximo de megabytes (MB) que se permite subir en los archivos multimedia.
 </details>
 
 <details>
-<summary><i style="font-size:16px;">📌 PIN de Acceso</i></summary>
+<summary><i style="font-size:16px;">PIN de Acceso</i></summary>
 
 Una vez creada la sala, el sistema te proporcionará un **PIN de Sala**. Este PIN es la clave de acceso que debes compartir con los Invitados.
 
@@ -198,7 +198,7 @@ Una vez creada la sala, el sistema te proporcionará un **PIN de Sala**. Este PI
 </details>
 
 <details>
-<summary><i style="font-size:16px;">➡️Ingreso como Invitado</i></summary>
+<summary><i style="font-size:16px;">Ingreso como Invitado</i></summary>
 
 Para unirte a una sala como Invitado, no necesitas registrarte, pero debes proporcionar la información de la sala:
 
@@ -209,7 +209,7 @@ Para unirte a una sala como Invitado, no necesitas registrarte, pero debes propo
 </details>
 
 <details>
-<summary><i style="font-size:16px;">⚠️Cosas a Tener en Cuenta</i></summary>
+<summary><i style="font-size:16px;">Cosas a Tener en Cuenta</i></summary>
 
 - **Sesión Volátil:** La sala de chat funciona de manera similar a una reunión de Google Meet:  
   Si recargas la página o cierras la pestaña, saldrás de la sala y tendrás que volver a ingresar con el PIN y el Nickname.
@@ -218,7 +218,7 @@ Para unirte a una sala como Invitado, no necesitas registrarte, pero debes propo
 </details>
 ---
 <details>
-<summary><b><i style="font-size:18px;">➡️Flujo del Programa</i></b></summary>
+<summary><b><i style="font-size:18px;">Flujo del Programa</i></b></summary>
 
 ![](imagenes//FlujoSala.png)
 
