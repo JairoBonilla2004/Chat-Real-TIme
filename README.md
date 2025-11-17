@@ -1,15 +1,22 @@
+
+
+
 # Sistema de Chat en Tiempo Real con Salas Seguras
 
-
-Este proyecto implementa un sistema de chat en tiempo real con salas seguras, desarrollado como parte del Proyecto Integrador del Parcial I de la materia**Aplicaciones Distribuidas**. El sistema permite comunicación instantánea mediante **WebSockets** , salas protegidas con **PIN**. gestión de archivos en salas multimedia y un flujo de interacción administrado por un backend robusto en **Spring Boot**
+Este proyecto implementa un sistema de chat en tiempo real con salas seguras, desarrollado como parte del Proyecto Integrador del Parcial I de la materia **Aplicaciones Distribuidas**. El sistema permite comunicación instantánea mediante **WebSockets**, salas protegidas con **PIN**, gestión de archivos en salas multimedia y un flujo de interacción administrado por un backend robusto en **Spring Boot**.
 
 ---
 
+Este proyecto fue elaborado por Alejandro Andrade, Jairo Bonilla, Axel Herrera y Micaela Salcedo.
+
 ## Objetivos
 
-**General:** Desarrollar un sistema de chat seguro y en tiempo real, con salas administradas mediante PIN, utilizando tecnologías distribuidas.
+**General:**  
+Desarrollar un sistema de chat seguro y en tiempo real, con salas administradas mediante PIN, utilizando tecnologías distribuidas.
+
 <details>
-<summary>**Específicos:** </summary>
+<summary><b><i style="font-size:20px;">Objetivos Específicos:</i></b></summary>
+
 
 * Implementar autenticación del administrador.
 * Permitir la creación de salas con ID único y PIN.
@@ -22,44 +29,55 @@ Este proyecto implementa un sistema de chat en tiempo real con salas seguras, de
 </details>
 
 ---
+
 <details>
-<summary>## Arquitectura</summary>
+<summary><b><i style="font-size:18px;">Arquitectura</i></b></summary>
 
 ![](imagenes/Arquitectura.png)
+
 </details>
 
 ---
 
 ## Metodología
 
-* **Lenguaje y herramientas:** 
-* Sprintboot y MySql 
-* docker 
-* cuenta en cloudinary (subir archivos multimedia)
-
 <details>
-<summary> ## Requisitos del Sistema </summary>
+<summary><b><i style="font-size:18px;">Lenguaje y herramientas:</i></b></summary>
+  - Spring Boot y MySQL  
+  - Docker  
+  - Cuenta en Cloudinary (para subir archivos multimedia)
+</details>
+<details>
+<summary><b><i style="font-size:18px;">Requisitos del Sistema</i></b></summary>
 
 Asegúrate de tener instalado el siguiente software:
 
-* **JDK 21** o superior
-* **Node.js 18+** o superior
-* **Maven 3.9+** o superior
-* **Git**
-* **MySQL 8** (o utilizar la opción recomendada de Docker)
-* **cuenta en cloudinary**
+* **JDK 21** o superior  
+* **Node.js 18+** o superior  
+* **Maven 3.9+** o superior  
+* **Git**  
+* **MySQL 8** (o utilizar la opción recomendada de Docker)  
+* **Cuenta en Cloudinary**
+
 </details>
+
 --- 
+
+
+<details>
+<summary><b><i style="font-size:18px;">Ejecución del Proyecto Backend</i></b></summary>
+
 ## Base de Datos con Docker (RECOMENDADO)
 
 La manera más sencilla de levantar la base de datos MySQL es utilizando Docker.
 
-<details>
-<summary> ### Ejecución del Proyecto Backend  </summary>
 ## 1. Clonar el Repositorio
+
 ```bash
 https://github.com/JairoBonilla2004/Chat-Real-TIme.git
+
 ```
+
 ## 2. Iniciar el Contenedor
 Ejecuta el siguiente comando en tu terminal para crear e iniciar el contenedor de la base de datos:
 
@@ -86,7 +104,6 @@ CLOUDINARY_API_SECRET=coloca tu apu secret
 ## 4. Ejecutar el Servidor
 Desde la carpeta raíz del proyecto **(/chat-real-time)**, navega a la carpeta del backend y ejecuta:
 
-Bash
 ```bash
 cd backend
 mvn spring-boot:run
@@ -96,7 +113,6 @@ El backend estará disponible en **http://localhost:8080**.
 ## 5. Ejecutar el Servidor
 Desde la carpeta raíz del proyecto **(/chat-real-time)**, navega a la carpeta del backend y ejecuta:
 
-Bash
 ```bash
 cd backend
 mvn spring-boot:run
@@ -106,7 +122,8 @@ El backend estará disponible en **http://localhost:8080**.
 
 --- 
 <details>
-<summary> ### Ejecución del Proyecto Frontend </summary>
+<summary><b><i style="font-size:18px;">Ejecución del Proyecto Frontend</i></b></summary>
+
 ## 1. Clonar el Repositorio
 Abre una nueva terminal (manteniendo el backend en ejecución) y navega a la carpeta del frontend.
 ```bash
@@ -120,7 +137,8 @@ npm run dev
 ```
 
 El backend estará disponible en **http://localhost:3000**.
-</ details>
+</details>
+
 ---
 
 ## 🚀 Cómo funciona la aplicación
@@ -130,7 +148,7 @@ Esta aplicación está diseñada para facilitar la comunicación instantánea en
 ---
 
 <details>
-<summary>🧑‍💻 Roles de Usuario</summary>
+<summary><i style="font-size:16px;">🧑‍💻 Roles de Usuario</i></summary>
 
 El sistema distingue entre dos roles principales para gestionar el acceso y la funcionalidad de las salas:
 
@@ -142,7 +160,7 @@ El sistema distingue entre dos roles principales para gestionar el acceso y la f
 </details>
 
 <details>
-<summary>🔑 Acceso y Autenticación</summary>
+<summary><i style="font-size:16px;">🔑 Acceso y Autenticación</i></summary>
 
 - **Registro:** Para obtener el rol de Administrador, el primer paso es registrarse en la plataforma.
 - **Inicio de Sesión:** Una vez registrado, inicia sesión utilizando tu nombre de usuario y contraseña para acceder a las funcionalidades de gestión.
@@ -150,7 +168,7 @@ El sistema distingue entre dos roles principales para gestionar el acceso y la f
 </details>
 
 <details>
-<summary>➕ Creación de Salas (Solo Administradores)</summary>
+<summary><i style="font-size:16px;">➕ Creación de Salas (Solo Administradores)</i></summary>
 
 Como Administrador, puedes crear una sala configurando las siguientes características:
 
@@ -171,7 +189,7 @@ El máximo de megabytes (MB) que se permite subir en los archivos multimedia.
 </details>
 
 <details>
-<summary>📌 PIN de Acceso</summary>
+<summary><i style="font-size:16px;">📌 PIN de Acceso</i></summary>
 
 Una vez creada la sala, el sistema te proporcionará un **PIN de Sala**. Este PIN es la clave de acceso que debes compartir con los Invitados.
 
@@ -180,7 +198,7 @@ Una vez creada la sala, el sistema te proporcionará un **PIN de Sala**. Este PI
 </details>
 
 <details>
-<summary>➡️Ingreso como Invitado</summary>
+<summary><i style="font-size:16px;">➡️Ingreso como Invitado</i></summary>
 
 Para unirte a una sala como Invitado, no necesitas registrarte, pero debes proporcionar la información de la sala:
 
@@ -191,10 +209,19 @@ Para unirte a una sala como Invitado, no necesitas registrarte, pero debes propo
 </details>
 
 <details>
-<summary>⚠️Cosas a Tener en Cuenta</summary>
+<summary><i style="font-size:16px;">⚠️Cosas a Tener en Cuenta</i></summary>
 
 - **Sesión Volátil:** La sala de chat funciona de manera similar a una reunión de Google Meet:  
   Si recargas la página o cierras la pestaña, saldrás de la sala y tendrás que volver a ingresar con el PIN y el Nickname.
 - **Límite de Dispositivos:** Solo se permite ingresar a una reunión por dispositivo a la vez. No puedes unirte a dos salas o a la misma sala dos veces desde el mismo navegador o dispositivo.
 
 </details>
+---
+<details>
+<summary><b><i style="font-size:18px;">➡️Flujo del Programa</i></b></summary>
+
+![](imagenes//FlujoSala.png)
+
+</details>
+
+---
