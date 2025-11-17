@@ -168,7 +168,7 @@ El sistema distingue entre dos roles principales para gestionar el acceso y la f
 </details>
 
 <details>
-<summary><i style="font-size:16px;">➕ Creación de Salas (Solo Administradores)</i></summary>
+<summary><i style="font-size:16px;">Creación de Salas (Solo Administradores)</i></summary>
 
 Como Administrador, puedes crear una sala configurando las siguientes características:
 
