@@ -274,7 +274,7 @@ Este apartado resume las pruebas unitarias realizadas en el proyecto, agrupadas 
 <details>
 <summary><b><i style="font-size:18px;">Cobertura</i></b></summary>
 
-La sección de cobertura muestra el porcentaje e informe visual obtenido tras ejecutar las pruebas unitarias. A continuación se incluye la captura del reporte de cobertura generado (por ejemplo, JaCoCo) para el módulo backend.
+La sección de cobertura muestra el porcentaje e informe visual obtenido tras ejecutar las pruebas unitarias. A continuación se incluye la captura del reporte de cobertura generado para el módulo backend.
 
 ![](imagenes/coverage.JPG)
 
