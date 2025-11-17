@@ -241,31 +241,31 @@ Este apartado resume las pruebas unitarias realizadas en el proyecto, agrupadas 
 
 - **Exception:**: Pruebas para garantizar que las excepciones se manejan correctamente y que el sistema responde con mensajes y códigos adecuados.
 
-  ![](imagenes/exception test.JPG)
+  ![](imagenes/exceptiontest.JPG)
 
 - **Model:**: Pruebas que validan las entidades del dominio, sus getters/setters y reglas básicas de negocio asociadas.
 
-  ![](imagenes/model test.JPG)
+  ![](imagenes/modeltest.JPG)
 
 - **Repository:**: Pruebas que comprueban las operaciones de acceso a datos (consultas, persistencia y eliminación).
 
-  ![](imagenes/repository tesst.JPG)
+  ![](imagenes/repositorytesst.JPG)
 
 - **Security:**: Pruebas relacionadas con autenticación, autorización y manejo de tokens/credenciales.
 
-  ![](imagenes/security test.JPG)
+  ![](imagenes/securitytest.JPG)
 
 - **Service:**: Pruebas de la lógica de negocio en servicios, asegurando que las operaciones compuestas funcionan correctamente.
 
-  ![](imagenes/Service test.JPG)
+  ![](imagenes/Servicetest.JPG)
 
 - **Utils:**: Pruebas para utilidades y helpers, validando funciones auxiliares reutilizables.
 
-  ![](imagenes/utils test.JPG)
+  ![](imagenes/utilstest.JPG)
 
 - **WebSocket:**: Pruebas que validan el comportamiento de la comunicación en tiempo real vía WebSocket (envío/recepción de mensajes, suscripción a salas).
 
-  ![](imagenes/webocket test.JPG)
+  ![](imagenes/webockettest.JPG)
 
 </details>
 
