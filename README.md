@@ -237,7 +237,7 @@ Este apartado resume las pruebas unitarias realizadas en el proyecto, agrupadas 
 
 - **DTO (Data Transfer Objects):**: Pruebas que aseguran la correcta transformación y validación de datos entre capas.
 
-  ![](imagenes/DTO test.JPG)
+  ![](imagenes/DTOtest.JPG) 
 
 - **Exception:**: Pruebas para garantizar que las excepciones se manejan correctamente y que el sistema responde con mensajes y códigos adecuados.
 
