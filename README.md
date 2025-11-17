@@ -225,3 +225,57 @@ Para unirte a una sala como Invitado, no necesitas registrarte, pero debes propo
 </details>
 
 ---
+
+<details>
+<summary><b><i style="font-size:18px;">Pruebas Unitarias</i></b></summary>
+
+Este apartado resume las pruebas unitarias realizadas en el proyecto, agrupadas por responsabilidad. Cada prueba valida el correcto comportamiento de una unidad concreta del sistema.
+
+- **Controller:**: Pruebas que verifican las rutas y respuestas del controlador, validan códigos HTTP y manejo de entradas/salidas.
+
+  ![](imagenes/controller.JPG)
+
+- **DTO (Data Transfer Objects):**: Pruebas que aseguran la correcta transformación y validación de datos entre capas.
+
+  ![](imagenes/DTO test.JPG)
+
+- **Exception:**: Pruebas para garantizar que las excepciones se manejan correctamente y que el sistema responde con mensajes y códigos adecuados.
+
+  ![](imagenes/exception test.JPG)
+
+- **Model:**: Pruebas que validan las entidades del dominio, sus getters/setters y reglas básicas de negocio asociadas.
+
+  ![](imagenes/model test.JPG)
+
+- **Repository:**: Pruebas que comprueban las operaciones de acceso a datos (consultas, persistencia y eliminación).
+
+  ![](imagenes/repository tesst.JPG)
+
+- **Security:**: Pruebas relacionadas con autenticación, autorización y manejo de tokens/credenciales.
+
+  ![](imagenes/security test.JPG)
+
+- **Service:**: Pruebas de la lógica de negocio en servicios, asegurando que las operaciones compuestas funcionan correctamente.
+
+  ![](imagenes/Service test.JPG)
+
+- **Utils:**: Pruebas para utilidades y helpers, validando funciones auxiliares reutilizables.
+
+  ![](imagenes/utils test.JPG)
+
+- **WebSocket:**: Pruebas que validan el comportamiento de la comunicación en tiempo real vía WebSocket (envío/recepción de mensajes, suscripción a salas).
+
+  ![](imagenes/webocket test.JPG)
+
+</details>
+
+---
+
+<details>
+<summary><b><i style="font-size:18px;">Cobertura</i></b></summary>
+
+La sección de cobertura muestra el porcentaje e informe visual obtenido tras ejecutar las pruebas unitarias. A continuación se incluye la captura del reporte de cobertura generado (por ejemplo, JaCoCo) para el módulo backend.
+
+![](imagenes/coverage.JPG)
+
+</details>
