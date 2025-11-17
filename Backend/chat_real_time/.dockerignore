@@ -1,0 +1,13 @@
+target/
+!target/chat_real_time-*.jar
+.mvn/wrapper/maven-wrapper.jar
+.git
+.gitignore
+README.md
+*.md
+.DS_Store
+.vscode
+.idea
+*.iml
+*.ipr
+*.iws
