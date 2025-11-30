@@ -83,6 +83,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
       String roomIdStr = matcher.extractUriTemplateVariables(pattern2, destination).get("roomId");
       return parseLong(roomIdStr);
     }
+    
     return null;
   }
 

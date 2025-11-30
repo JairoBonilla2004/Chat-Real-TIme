@@ -69,7 +69,7 @@ public class MessageServiceImpl implements MessageService {
     log.info("Text message sent successfully: {}", message.getId());
 
     MessageResponse response = MessageMapper.toMessageResponse(message);
-    messagingTemplate.convertAndSend(
+    messagingTemplate.convertAndSend( //convertAndSend envia el mensaje a todos los que estan suscritos al topic
             "/topic/room/" + room.getId(),
             response
     );

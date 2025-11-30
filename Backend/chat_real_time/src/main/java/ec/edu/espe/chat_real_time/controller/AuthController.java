@@ -7,7 +7,8 @@ import ec.edu.espe.chat_real_time.dto.request.LoginRequest;
 import ec.edu.espe.chat_real_time.dto.response.ApiResponse;
 import ec.edu.espe.chat_real_time.dto.request.RegisterAdminRequest;
 import ec.edu.espe.chat_real_time.dto.response.AuthResponse;
-import jakarta.servlet.http.Cookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -32,11 +33,14 @@ public class AuthController {
           HttpServletResponse httpServletResponse
   ) {
     AuthResponse authResponse = authService.login(request, httpServletRequest);
-    Cookie cookie = new Cookie("refreshToken", authResponse.getRefreshToken());
-    cookie.setHttpOnly(true);
-    cookie.setPath("/api/v1/auth/"); // sirve para que solo envie la cookie a esta ruta
-    cookie.setMaxAge(7 * 24 * 60 * 60);
-    httpServletResponse.addCookie(cookie);
+    ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", authResponse.getRefreshToken())
+            .httpOnly(true)
+            .secure(httpServletRequest.isSecure())
+            .path("/api/v1/auth/")
+            .sameSite("Lax")
+            .maxAge(7 * 24 * 60 * 60)
+            .build();
+    httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
     authResponse.setRefreshToken(null);
     return ResponseEntity.status(HttpStatus.OK)
             .body(
@@ -60,11 +64,14 @@ public class AuthController {
           HttpServletResponse httpServletResponse
   ) {
     AuthResponse authResponse = authService.refreshToken(refreshToken, httpServletRequest);
-    Cookie cookie = new Cookie("refreshToken", authResponse.getRefreshToken());
-    cookie.setHttpOnly(true);
-    cookie.setPath("/api/v1/auth/");
-    cookie.setMaxAge(7 * 24 * 60 * 60);
-    httpServletResponse.addCookie(cookie);
+    ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", authResponse.getRefreshToken())
+            .httpOnly(true)
+            .secure(httpServletRequest.isSecure())
+            .path("/api/v1/auth/")
+            .sameSite("Lax")
+            .maxAge(7 * 24 * 60 * 60)
+            .build();
+    httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
     authResponse.setRefreshToken(null);
     return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("Token refreshed successfully", authResponse));
@@ -82,17 +89,21 @@ public class AuthController {
   @PostMapping("/logout")
   public ResponseEntity<ApiResponse<String>> logout(
           @CookieValue(value = "refreshToken", required = false) String refreshToken, //el requi
+          HttpServletRequest httpServletRequest,
           HttpServletResponse httpServletResponse
   ) {
     //log del refresh token para ver si existe
     log.info("Logout request received with refresh token: {}", refreshToken);
     if (refreshToken != null) {
       authService.logout(refreshToken);
-      Cookie cookie = new Cookie("refreshToken", null);
-      cookie.setHttpOnly(true);
-      cookie.setPath("/api/v1/auth/");
-      cookie.setMaxAge(0); // Eliminar la cookie
-      httpServletResponse.addCookie(cookie);
+      ResponseCookie expired = ResponseCookie.from("refreshToken", "")
+              .httpOnly(true)
+              .secure(httpServletRequest.isSecure())
+              .path("/api/v1/auth/")
+              .sameSite("Lax")
+              .maxAge(0)
+              .build();
+      httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, expired.toString());
     }
     return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("Logged out successfully", null));
@@ -101,15 +112,19 @@ public class AuthController {
   @PostMapping("/logout-all")
   public ResponseEntity<ApiResponse<String>> logoutAll(
           @CookieValue(value = "refreshToken", required = false) String refreshToken,
+          HttpServletRequest httpServletRequest,
           HttpServletResponse httpServletResponse
   ) {
     if (refreshToken != null) {
       authService.logoutFromAllDevices(refreshToken);
-      Cookie cookie = new Cookie("refreshToken", null);
-      cookie.setHttpOnly(true);
-      cookie.setPath("/api/v1/auth/");
-      cookie.setMaxAge(0); // Eliminar la cookie
-      httpServletResponse.addCookie(cookie);
+      ResponseCookie expired = ResponseCookie.from("refreshToken", "")
+              .httpOnly(true)
+              .secure(httpServletRequest.isSecure())
+              .path("/api/v1/auth/")
+              .sameSite("Lax")
+              .maxAge(0)
+              .build();
+      httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, expired.toString());
     }
     return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("Logged out from all devices successfully", null));
