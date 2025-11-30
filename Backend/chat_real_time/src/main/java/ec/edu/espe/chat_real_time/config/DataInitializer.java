@@ -1,6 +1,5 @@
 package ec.edu.espe.chat_real_time.config;
 
-
 import ec.edu.espe.chat_real_time.model.Role;
 import ec.edu.espe.chat_real_time.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;

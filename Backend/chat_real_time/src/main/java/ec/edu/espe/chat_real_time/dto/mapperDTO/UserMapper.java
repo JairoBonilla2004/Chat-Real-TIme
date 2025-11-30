@@ -10,9 +10,13 @@ public class UserMapper {
 
   public static UserGuestResponse toUserGuestResponse(GuestProfile guestProfile) {
     User user = guestProfile.getUser();
+    String roleName = null;
+    if (user.getRoles() != null) {
+      roleName = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse(null);
+    }
     return UserGuestResponse.builder()
             .id(user.getId())
-            .role(user.getRoles().stream().findFirst().orElse(null).getName())
+            .role(roleName)
             .nickname(guestProfile.getNickname())
             .isGuest(user.isGuest())
             .guestExpiresAt(guestProfile.getExpiresAt())
@@ -23,6 +27,10 @@ public class UserMapper {
 
   public static UserAdminResponse toUserAdminResponse(AdminProfile adminProfile) {
     User user = adminProfile.getUser();
+    String roleName = null;
+    if (user.getRoles() != null) {
+      roleName = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse(null);
+    }
     return UserAdminResponse.builder()
             .id(adminProfile.getUser().getId())
             .name(adminProfile.getFirstName())
@@ -30,7 +38,7 @@ public class UserMapper {
             .email(adminProfile.getEmail())
             .username(user.getUsername())
             .phone(adminProfile.getPhone())
-            .role(user.getRoles().stream().findFirst().orElse(null).getName())
+            .role(roleName)
             .enabled(user.getEnabled())
             .build();
   }

@@ -7,6 +7,7 @@ import ec.edu.espe.chat_real_time.exception.BadRequestException;
 import ec.edu.espe.chat_real_time.exception.ResourceNotFoundException;
 import ec.edu.espe.chat_real_time.exception.RoomFullException;
 import ec.edu.espe.chat_real_time.model.room.Room;
+import ec.edu.espe.chat_real_time.model.user.User;
 import java.util.Optional;
 import ec.edu.espe.chat_real_time.repository.MessageRepository;
 import ec.edu.espe.chat_real_time.repository.RoomRepository;
@@ -34,10 +35,9 @@ class RoomServiceImplTest {
     private DeviceSessionService deviceSessionService;
     private HttpRequestService httpRequestService;
     private WebSocketService webSocketService;
-    private UserRepository userRepository;
-    private JwtService jwtService;
 
     private RoomServiceImpl roomService;
+    private User user;
 
     @BeforeEach
     void setUp() {
@@ -49,8 +49,8 @@ class RoomServiceImplTest {
         deviceSessionService = mock(DeviceSessionService.class);
         httpRequestService = mock(HttpRequestService.class);
         webSocketService = mock(WebSocketService.class);
-        userRepository = mock(UserRepository.class);
-        jwtService = mock(JwtService.class);
+
+        user = mock(User.class);
 
         roomService = new RoomServiceImpl(
                 roomRepository,
@@ -60,9 +60,7 @@ class RoomServiceImplTest {
                 pinGeneratorService,
                 deviceSessionService,
                 httpRequestService,
-                webSocketService,
-                userRepository,
-                jwtService
+                webSocketService
         );
     }
     @Test
@@ -79,7 +77,7 @@ class RoomServiceImplTest {
 
         when(roomRepository.findByRoomCodeAndDeletedAtIsNull("ROOM999")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> roomService.joinRoom(request, httpRequest))
+        assertThatThrownBy(() -> roomService.joinRoom(request, user, httpRequest))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Sala no encontrada");
     }
@@ -100,7 +98,7 @@ class RoomServiceImplTest {
 
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
 
-        assertThatThrownBy(() -> roomService.joinRoom(request, httpRequest))
+        assertThatThrownBy(() -> roomService.joinRoom(request, user, httpRequest))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("PIN incorrecto");
     }
@@ -123,7 +121,7 @@ class RoomServiceImplTest {
 
         HttpServletRequest httpRequest = mock(HttpServletRequest.class);
 
-        assertThatThrownBy(() -> roomService.joinRoom(request, httpRequest))
+        assertThatThrownBy(() -> roomService.joinRoom(request, user, httpRequest))
                 .isInstanceOf(RoomFullException.class)
                 .hasMessageContaining("La sala está llena");
     }
