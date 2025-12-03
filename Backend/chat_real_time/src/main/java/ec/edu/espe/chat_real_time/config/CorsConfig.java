@@ -15,14 +15,21 @@ public class CorsConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration corsConfiguration = new CorsConfiguration();
-    //acepta todos los dominios
-    corsConfiguration.setAllowedOriginPatterns( List.of("*"));
+    corsConfiguration.setAllowedOriginPatterns(List.of(
+            "http://localhost:8081",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173"
+    ));
+
     corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     corsConfiguration.setAllowedHeaders(List.of("*"));
     corsConfiguration.setAllowCredentials(true);
+
     corsConfiguration.setMaxAge(3600L);
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", corsConfiguration);
+
     return source;
   }
 }

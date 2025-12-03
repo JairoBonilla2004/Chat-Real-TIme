@@ -28,7 +28,7 @@ public class WebSocketChatController {
           Authentication authentication
   ) {
     User user = getUserFromAuthentication(authentication);
-    request.setRoomId(roomId); // Asegurar que el roomId esté en el request
+    request.setRoomId(roomId);
     webSocketService.sendMessageToRoom(request, user);
   }
 

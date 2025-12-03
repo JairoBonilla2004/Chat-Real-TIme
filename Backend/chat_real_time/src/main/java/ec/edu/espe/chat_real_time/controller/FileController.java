@@ -63,7 +63,6 @@ public class FileController {
     }
   }
 
-  // Public download endpoint that proxies Cloudinary and sets filename for consistent downloads
   @GetMapping("/api/v1/public/files/{attachmentId}/download")
   public ResponseEntity<Resource> downloadAttachment(@PathVariable Long attachmentId) {
     Attachment att = attachmentRepository.findById(attachmentId)

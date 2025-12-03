@@ -12,5 +12,5 @@ public interface AuthService {
   void logout(String refreshToken );
   void logoutFromAllDevices(String refreshToken);
   AuthResponse refreshToken(String cookieValue, HttpServletRequest httpServletRequest);
-  AuthResponse registerAdmin(RegisterAdminRequest request);
+  AuthResponse registerAdmin(RegisterAdminRequest request, HttpServletRequest httpServletRequest);
 }

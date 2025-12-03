@@ -6,7 +6,6 @@ import ec.edu.espe.chat_real_time.dto.request.LoginRequest;
 import ec.edu.espe.chat_real_time.dto.request.RegisterAdminRequest;
 import ec.edu.espe.chat_real_time.dto.response.ApiResponse;
 import ec.edu.espe.chat_real_time.dto.response.AuthResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
@@ -49,9 +48,8 @@ class AuthControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Login successful", response.getBody().getMessage());
 
-        ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
-        verify(httpResponse).addCookie(cookieCaptor.capture());
-        assertEquals("refreshToken", cookieCaptor.getValue().getName());
+        // Two Set-Cookie headers: new cookie + legacy cleanup
+        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
     }
 
     @Test
@@ -79,25 +77,26 @@ class AuthControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Token refreshed successfully", response.getBody().getMessage());
 
-        verify(httpResponse, times(1)).addCookie(any());
+        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
     }
 
     @Test
     void testLogout() {
         ResponseEntity<ApiResponse<String>> response =
-                controller.logout("token123", httpResponse);
+                controller.logout("token123", httpRequest, httpResponse);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Logged out successfully", response.getBody().getMessage());
 
         verify(authService).logout("token123");
-        verify(httpResponse).addCookie(any());
+        // Logout sends two delete headers (current path + legacy path)
+        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
     }
 
     @Test
     void testLogoutAll() {
         ResponseEntity<ApiResponse<String>> response =
-                controller.logoutAll("token123", httpResponse);
+                controller.logoutAll("token123", httpRequest, httpResponse);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Logged out from all devices successfully", response.getBody().getMessage());
@@ -111,14 +110,15 @@ class AuthControllerTest {
 
         AuthResponse authResponse = mockAuthResponse();
 
-        when(authService.registerAdmin(eq(request))).thenReturn(authResponse);
+        when(authService.registerAdmin(eq(request), any())).thenReturn(authResponse);
 
         ResponseEntity<ApiResponse<AuthResponse>> response =
-                controller.registerAdmin(request);
+                controller.registerAdmin(request, httpRequest, httpResponse);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("Administrador registrado correctamente", response.getBody().getMessage());
         assertNotNull(response.getBody().getData());
+        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
     }
 
 }

@@ -113,7 +113,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   @Transactional
-  public AuthResponse registerAdmin(RegisterAdminRequest request) {
+  public AuthResponse registerAdmin(RegisterAdminRequest request, HttpServletRequest httpServletRequest) {
     // Validate uniqueness safely (no exceptions used for control flow)
     if (userRepository.existsByUsername(request.getUsername())) {
       throw new IllegalArgumentException("El nombre de usuario ya existe");
@@ -147,15 +147,24 @@ public class AuthServiceImpl implements AuthService {
     User saved = userService.saveUserDB(admin)
             .orElseThrow(() -> new IllegalStateException("No se pudo guardar el administrador"));
 
-    // Auto-login optional: generate token so UI can continuar
+    // Auto-login: issue access and refresh tokens
     String accessToken = jwtService.generateAccessToken(saved);
+    RefreshToken refreshToken = refreshTokenService.createRefreshToken(
+            saved,
+            httpRequestService.getClientIpAddress(httpServletRequest),
+            httpRequestService.getUserAgent(httpServletRequest),
+            httpRequestService.getDeviceInfo(httpServletRequest)
+    );
+
     return AuthResponse.builder()
             .accessToken(accessToken)
+            .refreshToken(refreshToken.getToken())
             .tokenType("Bearer")
             .expiresIn(jwtService.getAccessTokenExpiration())
             .userInfo(ec.edu.espe.chat_real_time.dto.mapperDTO.UserMapper.toUserAdminResponse(saved.getAdminProfile()))
             .build();
   }
+
   @Override
   @Transactional
   public AuthResponse guestLogin(GuestLoginRequest request, HttpServletRequest httpRequest) {

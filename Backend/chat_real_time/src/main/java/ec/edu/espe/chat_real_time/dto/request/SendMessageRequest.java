@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class SendMessageRequest {
   @NotNull(message = "El ID de la sala es requerido")
   private Long roomId;
-
   @NotBlank(message = "El contenido del mensaje es requerido")
   private String content;
 }
