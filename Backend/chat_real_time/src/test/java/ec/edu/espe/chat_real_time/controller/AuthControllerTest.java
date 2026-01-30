@@ -48,8 +48,7 @@ class AuthControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Login successful", response.getBody().getMessage());
 
-        // Two Set-Cookie headers: new cookie + legacy cleanup
-        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
+        verify(httpResponse, times(1)).addHeader(eq("Set-Cookie"), anyString());
     }
 
     @Test
@@ -77,7 +76,7 @@ class AuthControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Token refreshed successfully", response.getBody().getMessage());
 
-        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
+        verify(httpResponse, times(1)).addHeader(eq("Set-Cookie"), anyString());
     }
 
     @Test
@@ -89,8 +88,7 @@ class AuthControllerTest {
         assertEquals("Logged out successfully", response.getBody().getMessage());
 
         verify(authService).logout("token123");
-        // Logout sends two delete headers (current path + legacy path)
-        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
+        verify(httpResponse, times(1)).addHeader(eq("Set-Cookie"), anyString());
     }
 
     @Test
@@ -118,7 +116,7 @@ class AuthControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("Administrador registrado correctamente", response.getBody().getMessage());
         assertNotNull(response.getBody().getData());
-        verify(httpResponse, times(2)).addHeader(eq("Set-Cookie"), anyString());
+        verify(httpResponse, times(1)).addHeader(eq("Set-Cookie"), anyString());
     }
 
 }

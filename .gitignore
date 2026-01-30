@@ -7,3 +7,4 @@ dist/
 
 # Ignorar archivos de logs
 *.log
+.idea/

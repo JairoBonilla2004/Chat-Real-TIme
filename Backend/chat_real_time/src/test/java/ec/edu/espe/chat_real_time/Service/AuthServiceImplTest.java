@@ -11,6 +11,7 @@ import ec.edu.espe.chat_real_time.repository.RoleRepository;
 import ec.edu.espe.chat_real_time.repository.UserRepository;
 import ec.edu.espe.chat_real_time.repository.AdminProfileRepository;
 import ec.edu.espe.chat_real_time.security.jwt.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -65,6 +66,7 @@ class AuthServiceImplTest {
 
     @Test
     void registerAdmin_ShouldCreateAdminUserSuccessfully() {
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
 
         RegisterAdminRequest request = new RegisterAdminRequest();
         request.setUsername("admin123");
@@ -100,8 +102,16 @@ class AuthServiceImplTest {
 
         when(userService.saveUserDB(any(User.class))).thenReturn(Optional.of(savedUser));
         when(jwtService.generateAccessToken(savedUser)).thenReturn("token-abc");
+        
+        ec.edu.espe.chat_real_time.model.RefreshToken refreshToken = new ec.edu.espe.chat_real_time.model.RefreshToken();
+        refreshToken.setToken("refresh-token-xyz");
+        when(refreshTokenService.createRefreshToken(eq(savedUser), anyString(), anyString(), anyString()))
+                .thenReturn(refreshToken);
+        when(httpRequestService.getClientIpAddress(httpServletRequest)).thenReturn("127.0.0.1");
+        when(httpRequestService.getUserAgent(httpServletRequest)).thenReturn("TestAgent");
+        when(httpRequestService.getDeviceInfo(httpServletRequest)).thenReturn("TestDevice");
 
-        AuthResponse response = authService.registerAdmin(request);
+        AuthResponse response = authService.registerAdmin(request, httpServletRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.getAccessToken()).isEqualTo("token-abc");

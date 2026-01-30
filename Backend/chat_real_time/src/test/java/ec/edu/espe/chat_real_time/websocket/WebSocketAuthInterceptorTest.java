@@ -89,6 +89,7 @@ class WebSocketAuthInterceptorTest {
     void connect_withValidToken_setsSecurityContextAndAccessorUser() {
         String token = "validtoken";
         StompHeaderAccessor accessor = StompHeaderAccessor.create(org.springframework.messaging.simp.stomp.StompCommand.CONNECT);
+        accessor.setLeaveMutable(true);
         accessor.addNativeHeader("Authorization", "Bearer " + token);
 
         Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
