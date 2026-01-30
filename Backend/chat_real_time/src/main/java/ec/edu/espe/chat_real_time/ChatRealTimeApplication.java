@@ -9,7 +9,4 @@ public class ChatRealTimeApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ChatRealTimeApplication.class, args);
 	}
-
-
-
 }
